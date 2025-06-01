@@ -45,4 +45,10 @@ def load_yolo_dataset(images_dir, labels_dir):
                 "bbox_height": bbox_height
             })
 
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    print("DataFrame loaded with {} rows.".format(len(df)))
+
+    # Optionally save
+    df.to_csv("./outputs/fish_size_dataframe.csv", index=False)
+
+    return df
