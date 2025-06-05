@@ -3,7 +3,7 @@
 Run the following command to install required libraries:
 
 ```
-pip install opencv-python numpy pandas scikit-learn matplotlib
+pip install opencv-python numpy pandas scikit-learn scikit-image matplotlib
 ```
 
 # Milkfish Image Segmentation Pipeline Documentation
