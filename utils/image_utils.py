@@ -1,5 +1,7 @@
+import os
 import cv2
 import numpy as np
+from u2net.u2net_test import segment_with_u2net
 
 # --- Image Processing Utilities ---
 
@@ -73,6 +75,14 @@ def remove_background_otsu(image):
     _, mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return mask
 
+def adaptive_threshold(image, block_size=11, C=2):
+    """
+    Apply adaptive thresholding to create a binary mask.
+    Uses mean of neighborhood pixels minus a constant C.
+    """
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    return cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                cv2.THRESH_BINARY_INV, block_size, C)
 
 def remove_background_grabcut(image, iterations=5):
     """
@@ -117,6 +127,20 @@ def hybrid_segmentation(image):
     return result_mask
 
 
+# --- U2Net Segmentation ---
+def segment_fish_u2net(image_path, output_path):
+    """
+    Applies U2-Net segmentation on a single image or a folder of images.
+
+    Args:
+        image_path (str): Path to an image file or folder of images.
+        output_path (str): Directory to save the predicted masks.
+    """
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    
+    segment_with_u2net(image_path, output_path, model_dir='u2net/saved_models/u2netp/u2netp.pth')
+
 # --- Morphological Operations ---
 
 def apply_opening(mask, kernel_size=(3, 3)):
@@ -143,17 +167,23 @@ def get_final_binary_mask(image):
     - Background removal
     - Morphological opening and closing
     """
-    mask = hybrid_segmentation(image)
+    mask = remove_background_otsu(image)
 
+    # Apply morphological operations to clean up the mask
     mask = apply_opening(mask)
     mask = apply_closing(mask)
     return mask
 
 def fill_holes(mask):
-    im_floodfill = mask.copy()
-    h, w = mask.shape[:2]
-    mask_flood = np.zeros((h+2, w+2), np.uint8)
-    cv2.floodFill(im_floodfill, mask_flood, (0, 0), 0)
-    im_floodfill_inv = cv2.bitwise_not(im_floodfill)
-    filled = mask | im_floodfill_inv
+    # Invert mask for flood filling
+    inverted = cv2.bitwise_not(mask.copy())
+
+    # Flood fill from (0,0)
+    h, w = mask.shape
+    mask = np.zeros((h+2, w+2), np.uint8)
+    cv2.floodFill(inverted, mask, (0, 0), 255)
+
+    # Invert flood-filled image and combine
+    flood_filled = cv2.bitwise_not(inverted)
+    filled = cv2.bitwise_or(mask, flood_filled)
     return filled

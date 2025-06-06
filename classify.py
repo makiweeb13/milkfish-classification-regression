@@ -6,7 +6,8 @@ from utils.image_utils import (
     crop_roi,
     normalize_image,
     denoise_image,
-    get_final_binary_mask
+    get_final_binary_mask,
+    segment_fish_u2net
 )
 
 
@@ -16,10 +17,7 @@ output_dir = "./outputs/fish_crops/"
 
 os.makedirs(output_dir, exist_ok=True)
 
-df = load_yolo_dataset(images, labels)
-
-
-def load_and_preprocess_images(image_path):
+def load_and_preprocess_images(df, image_path):
     
     for index, row in df.iterrows():
         image_path = os.path.join(images, row["image_id"] + ".jpg")
@@ -49,5 +47,9 @@ def load_and_preprocess_images(image_path):
         cv2.imwrite(save_path, crop)
 
 
-load_and_preprocess_images(images)
-print("All fish crops processed and saved.")
+if __name__ == '__main__':
+    # All code that creates DataLoaders or runs multiprocessing
+    df = load_yolo_dataset(images, labels)
+    # load_and_preprocess_images(df, images)
+    segment_fish_u2net(images, output_dir)
+    print("All fish crops processed and saved.")
