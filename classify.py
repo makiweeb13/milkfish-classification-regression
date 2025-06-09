@@ -9,11 +9,12 @@ from utils.image_utils import (
     get_final_binary_mask,
     segment_fish_u2net
 )
+from utils.extractor_utils import merge_features_with_csv
 
 
 images = "./dataset/train/images/"
 labels = "./dataset/train/labels/"
-output_dir = "./outputs/fish_crops/"
+output_dir = "./outputs/masks/"
 
 os.makedirs(output_dir, exist_ok=True)
 
@@ -46,11 +47,18 @@ def load_and_preprocess_images(df, image_path):
         )
         cv2.imwrite(save_path, crop)
 
+def classify():
+    # Load YOLO dataset
+    df = load_yolo_dataset(images, labels)   
 
-if __name__ == '__main__':
-    # All code that creates DataLoaders or runs multiprocessing
-    df = load_yolo_dataset(images, labels)
-    # load_and_preprocess_images(df, images)
-    segment_fish_u2net(images, output_dir)
-    
-    print("All fish processed and saved.")
+    # Preprocess and segment images
+    # segment_fish_u2net(images, output_dir)
+
+    # Extract features and merge with existing CSV
+    features_csv_path = "./outputs/fish_size_dataframe.csv"
+
+    if not os.path.exists(features_csv_path):
+        print(f"CSV file {features_csv_path} does not exist. Please run the dataset loader first.")
+        return
+
+    merge_features_with_csv(features_csv_path, output_dir, features_csv_path)
