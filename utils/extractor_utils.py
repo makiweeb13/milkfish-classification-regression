@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 
 def extract_morphometrics(mask_path):
     # Load mask (binary image)
@@ -74,10 +75,23 @@ def merge_features_with_csv(existing_csv_path, mask_dir, output_csv_path):
             ]})
 
     features_df = pd.DataFrame(features_list)
+
+    # Normalize numerical features
+    features_df = normalize_features(features_df)
     merged_df = pd.concat([df, features_df], axis=1)
-    
-     # Drop unnecessary columns
+
+    # Drop unnecessary columns
     merged_df = merged_df.drop(columns=['image_id', 'fish_id', 'original_class'])
 
+    # Save the merged DataFrame to CSV
     merged_df.to_csv(output_csv_path, index=False)
     print(f"Merged CSV saved to: {output_csv_path}")
+
+def normalize_features(df):
+    feature_cols = ['length', 'width', 'area', 'perimeter', 'aspect_ratio',
+                'solidity', 'circularity', 'convex_hull_area']
+    
+    scaler = MinMaxScaler()
+    df[feature_cols] = scaler.fit_transform(df[feature_cols])
+
+    return df

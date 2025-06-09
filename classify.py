@@ -52,7 +52,7 @@ def classify():
     df = load_yolo_dataset(images, labels)   
 
     # Preprocess and segment images
-    # segment_fish_u2net(images, output_dir)
+    segment_fish_u2net(images, output_dir)
 
     # Extract features and merge with existing CSV
     features_csv_path = "./outputs/fish_size_dataframe.csv"

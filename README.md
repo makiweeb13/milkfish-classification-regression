@@ -77,15 +77,44 @@ hybrid_segmentation(image: np.ndarray, iterations: int = 5) -> np.ndarray
 
 9. **U²-Net Pre-trained Segmentation Model**
 ```python
-segment_fish_u2net(image_path, output_path)
+segment_fish_u2net(image_path: str, output_path: str)
 ```
 - U²-Net is an open-source pre-trained model used for segmentation.
 - Achieves much higher segmentation accuracy.
 ---
 
+## Feature Extraction Utilities (utils/extractor_utils.py)
+Implemented functions:
+
+1. **Extract Morphometric Features**
+```python
+extract_morphometrics(path: str) -> dict
+```
+Features extracted per fish include:
+- Length
+- Width
+- Area
+- Perimeter
+- Aspect Ratio
+- Solidity
+- Circularity
+- Convex Hull Area
+
+2. **Merge Into Existing DataFrame**
+```python
+def merge_features_with_csv(existing_csv_path: str, mask_dir: str, output_csv_path: str)
+```
+
+3. **Normalize Features**
+```python
+def normalize_features(df: pd.DataFrame) -> pd.DataFrame
+```
+
 ## Image Processing Pipeline (classify.py)
 For each fish:
-- Load image.
+- Load image and save image details into **fish_size_dataframe.csv**.
 - Run image through U²-Net for automatic segmentation.
   - The model outputs a binary mask highlighting the fish
-- Save the segmented mask for visualization or morphometric feature extraction.
+- Save the segmented mask for morphometric feature extraction into **./outputs/masks/**.
+- Extract morphometric features
+- Save normalized features into **fish_size_dataframe.csv**
