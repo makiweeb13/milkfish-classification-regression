@@ -90,15 +90,15 @@ Implemented functions:
 ```python
 extract_morphometrics(path: str) -> dict
 ```
-Features extracted per fish include:
-- Length
-- Width
-- Area
-- Perimeter
-- Aspect Ratio
-- Solidity
-- Circularity
-- Convex Hull Area
+- Features extracted per fish include:
+  - Length
+  - Width
+  - Area
+  - Perimeter
+  - Aspect Ratio
+  - Solidity
+  - Circularity
+  - Convex Hull Area
 
 2. **Merge Into Existing DataFrame**
 ```python
