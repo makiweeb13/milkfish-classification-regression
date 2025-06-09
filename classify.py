@@ -52,4 +52,5 @@ if __name__ == '__main__':
     df = load_yolo_dataset(images, labels)
     # load_and_preprocess_images(df, images)
     segment_fish_u2net(images, output_dir)
-    print("All fish crops processed and saved.")
+    
+    print("All fish processed and saved.")

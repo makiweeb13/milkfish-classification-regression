@@ -3,7 +3,7 @@
 Run the following command to install required libraries:
 
 ```
-pip install opencv-python numpy pandas scikit-learn matplotlib
+pip install opencv-python numpy pandas scikit-learn scikit_image matplotlib torch torchvision
 ```
 
 # Milkfish Image Segmentation Pipeline Documentation
@@ -75,15 +75,17 @@ hybrid_segmentation(image: np.ndarray, iterations: int = 5) -> np.ndarray
 - Combines denoising, CLAHE, Otsu thresholding, and GrabCut segmentation with morphological refinement.
 - Addresses shape accuracy (Otsu) and hole reduction (GrabCut).
 
+9. **U²-Net Pre-trained Segmentation Model**
+```python
+segment_fish_u2net(image_path, output_path)
+```
+- U²-Net is an open-source pre-trained model used for segmentation.
+- Achieves much higher segmentation accuracy.
 ---
 
 ## Image Processing Pipeline (classify.py)
 For each fish:
 - Load image.
-- Crop to fish bounding box.
-- Apply:
-  - Normalization (normalize_image)
-  - Resizing (640x640)
-  - Denoising (GaussianBlur)
-  - Background Removal (hybrid_segmentation)
-- Save final mask for visualization or further analysis.
+- Run image through U²-Net for automatic segmentation.
+  - The model outputs a binary mask highlighting the fish
+- Save the segmented mask for visualization or morphometric feature extraction.

@@ -173,17 +173,3 @@ def get_final_binary_mask(image):
     mask = apply_opening(mask)
     mask = apply_closing(mask)
     return mask
-
-def fill_holes(mask):
-    # Invert mask for flood filling
-    inverted = cv2.bitwise_not(mask.copy())
-
-    # Flood fill from (0,0)
-    h, w = mask.shape
-    mask = np.zeros((h+2, w+2), np.uint8)
-    cv2.floodFill(inverted, mask, (0, 0), 255)
-
-    # Invert flood-filled image and combine
-    flood_filled = cv2.bitwise_not(inverted)
-    filled = cv2.bitwise_or(mask, flood_filled)
-    return filled
