@@ -102,12 +102,12 @@ extract_morphometrics(path: str) -> dict
 
 2. **Merge Into Existing DataFrame**
 ```python
-def merge_features_with_csv(existing_csv_path: str, mask_dir: str, output_csv_path: str)
+merge_features_with_csv(existing_csv_path: str, mask_dir: str, output_csv_path: str)
 ```
 
 3. **Normalize Features**
 ```python
-def normalize_features(df: pd.DataFrame) -> pd.DataFrame
+normalize_features(df: pd.DataFrame) -> pd.DataFrame
 ```
 
 ## Image Processing Pipeline (classify.py)
