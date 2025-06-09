@@ -1,12 +1,4 @@
-## Installation
-
-Run the following command to install required libraries:
-
-```
-pip install opencv-python numpy pandas scikit-learn scikit_image matplotlib torch torchvision
-```
-
-# Milkfish Image Segmentation Pipeline Documentation
+# Milkfish Size Classification and Weight Estimation using Ensemble Learning
 
 ---
 
@@ -14,6 +6,14 @@ pip install opencv-python numpy pandas scikit-learn scikit_image matplotlib torc
 To segment individual milkfish from aquaculture images, identify their size class (adult, semi-adult, juvenile), and generate a cleaned dataset for analysis.
 
 ---
+
+## Installation
+
+Run the following command to install required libraries:
+
+```
+pip install opencv-python numpy pandas scikit-learn scikit_image matplotlib torch torchvision
+```
 
 ## Dataset Preparation
 - **Format**: Pre-labeled YOLOv5 format dataset with .txt annotation files and YAML configuration.
