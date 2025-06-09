@@ -3,7 +3,7 @@
 ---
 
 ## Objective
-To segment individual milkfish from aquaculture images, identify their size class (adult, semi-adult, juvenile), and generate a cleaned dataset for analysis.
+To analyze individual milkfish from aquaculture images, classify their size class, and estimate their weight through image processing and ensemble learning techniques.
 
 ---
 
