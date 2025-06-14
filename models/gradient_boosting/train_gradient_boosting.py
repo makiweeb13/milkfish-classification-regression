@@ -25,7 +25,7 @@ def classify_fish_with_gradient_boosting():
     le = LabelEncoder()
     y_train_encoded = le.fit_transform(y_train)
     y_valid_encoded = le.transform(y_valid)
-
+    
     # Train Gradient Boosting model
     gb_model = GradientBoostingClassifier(random_state=42)
     gb_model.fit(X_train, y_train_encoded)
@@ -33,7 +33,7 @@ def classify_fish_with_gradient_boosting():
     # Predict on validation set
     y_valid_proba = gb_model.predict_proba(X_valid)
     y_valid_pred = np.argmax(y_valid_proba, axis=1)
-
+    
     # Evaluate
     print("Validation Accuracy:", accuracy_score(y_valid_encoded, y_valid_pred))
     print("Classification Report (Validation):")
