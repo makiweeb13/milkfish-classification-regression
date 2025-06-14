@@ -1,13 +1,18 @@
 # main.py
 from classify import (
-    extract_features
+    extract_features,
+    classify
 )
 
 def main():
-    # This function can be used to call the classify function
+    
     print("Starting feature extraction process...")
-    extract_features()
+    # extract_features()
     print("Feature extraction process completed.")
+
+    print("Starting classification process...")
+    classify()
+    print("Classification process completed.")
 
 if __name__ == "__main__":
     main()

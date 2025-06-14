@@ -17,6 +17,7 @@ from utils.directories_utils import (
     data_output
 )
 from utils.extractor_utils import merge_features_with_csv
+from models.gradient_boosting.train_gradient_boosting import classify_fish_with_gradient_boosting
 
 os.makedirs(train_output, exist_ok=True)
 os.makedirs(valid_output, exist_ok=True)
@@ -82,3 +83,6 @@ def exists(path):
         print(f"Directory {path} does not exist.")
         return False
     return True
+
+def classify():
+    classify_fish_with_gradient_boosting()
