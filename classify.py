@@ -9,19 +9,23 @@ from utils.image_utils import (
     get_final_binary_mask,
     segment_fish_u2net
 )
+from utils.directories_utils import (
+    train_images, train_labels, train_output,
+    valid_images, valid_labels, valid_output,
+    test_images, test_labels, test_output,
+    size_train_data, size_valid_data, size_test_data,
+    data_output
+)
 from utils.extractor_utils import merge_features_with_csv
 
+os.makedirs(train_output, exist_ok=True)
+os.makedirs(valid_output, exist_ok=True)
+os.makedirs(test_output, exist_ok=True)
 
-images = "./dataset/train/images/"
-labels = "./dataset/train/labels/"
-output_dir = "./outputs/masks/"
+def load_and_preprocess_train_images(df, image_path):
 
-os.makedirs(output_dir, exist_ok=True)
-
-def load_and_preprocess_images(df, image_path):
-    
     for index, row in df.iterrows():
-        image_path = os.path.join(images, row["image_id"] + ".jpg")
+        image_path = os.path.join(train_images, row["image_id"] + ".jpg")
 
         # Load the full image
         img = load_image(image_path)
@@ -42,23 +46,39 @@ def load_and_preprocess_images(df, image_path):
 
         # Save processed image crop
         save_path = os.path.join(
-            output_dir,
+            train_output,
             f"{row['image_id']}_fish{row['fish_id']}_{row['mapped_class'].replace(' ', '')}.jpg"
         )
         cv2.imwrite(save_path, crop)
 
-def classify():
+def extract_features():
     # Load YOLO dataset
-    df = load_yolo_dataset(images, labels)   
+    load_yolo_dataset(train_images, train_labels, f"{data_output}{size_train_data}")
+    load_yolo_dataset(valid_images, valid_labels, f"{data_output}{size_valid_data}")
+    load_yolo_dataset(test_images, test_labels, f"{data_output}{size_test_data}")
 
-    # Preprocess and segment images
-    segment_fish_u2net(images, output_dir)
+    # Preprocess and segment train_images
+    print("Segmenting images...")
+    segment_fish_u2net(train_images, train_output)
+    segment_fish_u2net(valid_images, valid_output)
+    segment_fish_u2net(test_images, test_output)
 
     # Extract features and merge with existing CSV
-    features_csv_path = "./outputs/fish_size_dataframe.csv"
+    print("Extracting features...")
+    features_csv_path = f"{data_output}{size_train_data}"
+    valid_features_csv_path = f"{data_output}{size_valid_data}"
+    test_features_csv_path = f"{data_output}{size_test_data}"
 
-    if not os.path.exists(features_csv_path):
-        print(f"CSV file {features_csv_path} does not exist. Please run the dataset loader first.")
+    if not exists(features_csv_path) or not exists(valid_features_csv_path) or not exists(test_features_csv_path):
         return
 
-    merge_features_with_csv(features_csv_path, output_dir, features_csv_path)
+    merge_features_with_csv(features_csv_path, train_output, features_csv_path)
+    merge_features_with_csv(valid_features_csv_path, valid_output, valid_features_csv_path)
+    merge_features_with_csv(test_features_csv_path, test_output, test_features_csv_path)  
+
+
+def exists(path):
+    if not os.path.exists(path):
+        print(f"Directory {path} does not exist.")
+        return False
+    return True

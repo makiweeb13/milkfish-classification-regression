@@ -5,7 +5,7 @@ import pandas as pd
 from PIL import Image
 from config.class_map import YOLO_CLASS_MAP
 
-def load_yolo_dataset(images_dir, labels_dir):
+def load_yolo_dataset(images_dir, labels_dir, output_dir):
     data = []
 
     for label_file in os.listdir(labels_dir):
@@ -49,6 +49,6 @@ def load_yolo_dataset(images_dir, labels_dir):
     print("DataFrame loaded with {} rows.".format(len(df)))
 
     # Optionally save
-    df.to_csv("./outputs/fish_size_dataframe.csv", index=False)
+    df.to_csv(output_dir, index=False)
 
     return df
