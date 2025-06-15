@@ -110,11 +110,24 @@ merge_features_with_csv(existing_csv_path: str, mask_dir: str, output_csv_path: 
 normalize_features(df: pd.DataFrame) -> pd.DataFrame
 ```
 
-## Image Processing Pipeline (classify.py)
+## Image Processing Pipeline
 For each fish:
-- Load image and save image details into **fish_size_dataframe.csv**.
+- Load image and save image details into (outputs/data/):
+  - test_fish_size_dataframe.csv
+  - train_fish_size_dataframe.csv
+  - valid_fish_size_dataframe.csv
 - Run image through U²-Net for automatic segmentation.
   - The model outputs a binary mask highlighting the fish
-- Save the segmented mask for morphometric feature extraction into **./outputs/masks/**.
-- Extract morphometric features
-- Save normalized features into **fish_size_dataframe.csv**
+- Save the segmented mask for morphometric feature extraction into (outputs/masks/):
+  - size_test_masks
+  - size_train_masks
+  - size_valid_masks
+- Extract morphometric and normalize features
+- Overwrite existing csv files with extracted data
+
+## Classification Process (classify.py)
+- Train ensemble learning models, **Gradient Boosting(GB) and Random Forest(RF)**:
+  **Gradient Boosting**
+  - Train and validate GB using train and valid sets (train_gradient_boosting.py)
+  - Save model and label encoder (gradient_boosting_classifier.pkl, label_encoder.pkl)
+  - Test model and output predictions and their probabilities (test_gradient_boosting.py)
