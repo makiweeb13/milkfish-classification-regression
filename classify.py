@@ -17,7 +17,10 @@ from utils.directories_utils import (
     data_output
 )
 from utils.extractor_utils import merge_features_with_csv
+
+# Model imports
 from models.gradient_boosting.train_gradient_boosting import classify_fish_with_gradient_boosting
+from models.gradient_boosting.test_gradient_boosting import gradientBoostingClassifier
 
 os.makedirs(train_output, exist_ok=True)
 os.makedirs(valid_output, exist_ok=True)
@@ -84,5 +87,10 @@ def exists(path):
         return False
     return True
 
-def classify():
+
+def train():
     classify_fish_with_gradient_boosting()
+
+
+def classify():
+    gradientBoostingClassifier()
