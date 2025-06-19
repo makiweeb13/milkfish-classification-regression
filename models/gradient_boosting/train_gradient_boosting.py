@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import RandomizedSearchCV
+from scipy.stats import uniform, randint
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
 from utils.directories_utils import (
@@ -27,18 +29,58 @@ def classify_fish_with_gradient_boosting():
     y_valid_encoded = le.transform(y_valid)
     
     # Train Gradient Boosting model
-    gb_model = GradientBoostingClassifier(random_state=42)
-    gb_model.fit(X_train, y_train_encoded)
+    gb_model = GradientBoostingClassifier()
+
+    # Hyperparameter tuning using RandomizedSearchCV
+    param_dist = {
+        'n_estimators': [50, 100, 150, 200, 250],
+        'learning_rate': [0.01, 0.05, 0.1, 0.2],
+        'max_depth': [2, 3, 4, 5],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 3, 5],
+        'subsample': [0.6, 0.8, 1.0]
+    }
+
+    # Perform RandomizedSearchCV
+    random_search = RandomizedSearchCV(
+        gb_model,
+        param_distributions=param_dist,
+        n_iter=20,
+        scoring='accuracy',
+        cv=3,
+        verbose=2,
+        random_state=42,
+        n_jobs=-1
+    )
+
+    # Fit the model with hyperparameter tuning
+    random_search.fit(X_train, y_train_encoded)
+
+    # Print best parameters from RandomizedSearchCV
+    print("Best Parameters:", random_search.best_params_)
+    print("Best CV Score:", random_search.best_score_)
+
+    # Get the best model from RandomizedSearchCV
+    best_model = random_search.best_estimator_
 
     # Predict on validation set
-    y_valid_proba = gb_model.predict_proba(X_valid)
+    y_valid_proba = best_model.predict_proba(X_valid)
     y_valid_pred = np.argmax(y_valid_proba, axis=1)
-    
-    # Evaluate
+
+    # Predict on training set
+    y_train_proba = best_model.predict_proba(X_train)
+    y_train_pred = np.argmax(y_train_proba, axis=1)
+
+    # Evaluate on training set
+    print("Training Accuracy:", accuracy_score(y_train_encoded, y_train_pred))
+    print("Classification Report (Training):")
+    print(classification_report(y_train_encoded, y_train_pred, target_names=le.classes_))
+
+    # Evaluate on validation set           
     print("Validation Accuracy:", accuracy_score(y_valid_encoded, y_valid_pred))
     print("Classification Report (Validation):")
     print(classification_report(y_valid_encoded, y_valid_pred, target_names=le.classes_))
 
     # Save model and label encoder
-    joblib.dump(gb_model, save_gradient_boosting_model)
+    joblib.dump(best_model, save_gradient_boosting_model)
     joblib.dump(le, save_label_encoder)

@@ -13,11 +13,11 @@ def main():
     print("Feature extraction process completed.")
 
     print("Starting training process...")
-    # train()
+    train()
     print("Training process completed.")
 
     print("Starting classification process...")
-    classify()
+    # classify()
     print("Classification process completed.")
 
 if __name__ == "__main__":
