@@ -22,6 +22,9 @@ from utils.extractor_utils import merge_features_with_csv
 from models.gradient_boosting.train_gradient_boosting import classify_fish_with_gradient_boosting
 from models.gradient_boosting.test_gradient_boosting import gradientBoostingClassifier
 
+from models.random_forest.train_random_forest import classify_fish_with_random_forest
+from models.random_forest.test_random_forest import randomForestClassifier
+
 os.makedirs(train_output, exist_ok=True)
 os.makedirs(valid_output, exist_ok=True)
 os.makedirs(test_output, exist_ok=True)
@@ -94,3 +97,9 @@ def train():
 
 def classify():
     gradientBoostingClassifier()
+
+def train_random_forest():
+    classify_fish_with_random_forest()
+
+def classify_random_forest():
+    randomForestClassifier()    

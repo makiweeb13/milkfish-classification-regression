@@ -17,3 +17,6 @@ size_test_data = "test_fish_size_dataframe.csv"
 
 save_gradient_boosting_model = "./models/saved_models/gradient_boosting_classifier.pkl"
 save_label_encoder = "./models/saved_models/label_encoder.pkl"
+
+save_random_forest_model = "./models/saved_models/random_forest_classifier.pkl"
+save_label_encoder_rf = "./models/saved_models/label_encoder_rf.pkl"
