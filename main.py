@@ -1,10 +1,11 @@
 # main.py
 from classify import (
     extract_features,
-    train,
-    classify,
+    train_gradient_boosting,
+    classify_gradient_boosting,
     train_random_forest,
-    classify_random_forest
+    classify_random_forest,
+    ensemble_soft_voting
 )
 
 def main():
@@ -15,13 +16,15 @@ def main():
     print("Feature extraction process completed.")
 
     print("Starting training process...")
-    # train()
+    # train_gradient_boosting()
     # train_random_forest()
     print("Training process completed.")
 
     print("Starting classification process...")
-    # classify()
-    # classify_random_forest()  # Test Random Forest
+    # classify_gradient_boosting()
+    # classify_random_forest()
+    ensemble_soft_voting()  
+
     print("Classification process completed.")
 
 if __name__ == "__main__":

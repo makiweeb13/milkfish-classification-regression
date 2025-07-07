@@ -1,6 +1,9 @@
 import os
 import cv2
+import numpy as np
+import pandas as pd
 from data.loader import load_yolo_dataset
+import joblib
 from utils.image_utils import (
     load_image,
     crop_roi,
@@ -14,9 +17,10 @@ from utils.directories_utils import (
     valid_images, valid_labels, valid_output,
     test_images, test_labels, test_output,
     size_train_data, size_valid_data, size_test_data,
-    data_output
+    data_output, save_gradient_boosting_model, save_label_encoder, save_random_forest_model
 )
 from utils.extractor_utils import merge_features_with_csv
+from sklearn.metrics import classification_report, accuracy_score
 
 # Model imports
 from models.gradient_boosting.train_gradient_boosting import classify_fish_with_gradient_boosting
@@ -91,15 +95,43 @@ def exists(path):
     return True
 
 
-def train():
+def train_gradient_boosting():
     classify_fish_with_gradient_boosting()
 
 
-def classify():
+def classify_gradient_boosting():
     gradientBoostingClassifier()
 
 def train_random_forest():
     classify_fish_with_random_forest()
 
 def classify_random_forest():
-    randomForestClassifier()    
+    randomForestClassifier()   
+
+def ensemble_soft_voting():
+
+    test_df = pd.read_csv(f"{data_output}{size_test_data}")
+
+    X_test = test_df.drop(columns=["mapped_class"])
+    y_test = test_df['mapped_class'] 
+    
+    le = joblib.load(save_label_encoder)
+    y_test_encoded = le.transform(y_test)
+
+    gb_model = joblib.load(save_gradient_boosting_model)
+    rf_model = joblib.load(save_random_forest_model)
+
+    gb_probs = gb_model.predict_proba(X_test)
+    rf_probs = rf_model.predict_proba(X_test)
+
+    avg_probs = (gb_probs + rf_probs) / 2
+    
+    ensemble_preds = np.argmax(avg_probs, axis=1)
+
+    accuracy = accuracy_score(y_test_encoded, ensemble_preds)
+    report = classification_report(y_test_encoded, ensemble_preds, target_names=le.classes_)
+
+    print(f"Ensemble Test Accuracy: {accuracy:.4f}")
+    print("Classification Report (Ensemble):")
+    print(report)
+
