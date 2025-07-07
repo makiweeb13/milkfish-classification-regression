@@ -16,12 +16,12 @@ def main():
 
     print("Starting training process...")
     # train()
-    train_random_forest()
+    # train_random_forest()
     print("Training process completed.")
 
     print("Starting classification process...")
     # classify()
-    classify_random_forest()  # Test Random Forest
+    # classify_random_forest()  # Test Random Forest
     print("Classification process completed.")
 
 if __name__ == "__main__":
