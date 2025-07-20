@@ -17,7 +17,7 @@ from utils.directories_utils import (
     valid_images, valid_labels, valid_output,
     test_images, test_labels, test_output,
     size_train_data, size_valid_data, size_test_data,
-    data_output, save_gradient_boosting_model, save_label_encoder, save_random_forest_model
+    data_output, save_gradient_boosting_model, save_label_encoder, save_random_forest_model, classify_ensemble
 )
 from utils.extractor_utils import merge_features_with_csv
 from sklearn.metrics import classification_report, accuracy_score
@@ -117,16 +117,9 @@ def ensemble_soft_voting():
     
     le = joblib.load(save_label_encoder)
     y_test_encoded = le.transform(y_test)
-
-    gb_model = joblib.load(save_gradient_boosting_model)
-    rf_model = joblib.load(save_random_forest_model)
-
-    gb_probs = gb_model.predict_proba(X_test)
-    rf_probs = rf_model.predict_proba(X_test)
-
-    avg_probs = (gb_probs + rf_probs) / 2
     
-    ensemble_preds = np.argmax(avg_probs, axis=1)
+    ensemble_model = joblib.load(classify_ensemble)
+    ensemble_preds = ensemble_model.predict(X_test)
 
     accuracy = accuracy_score(y_test_encoded, ensemble_preds)
     report = classification_report(y_test_encoded, ensemble_preds, target_names=le.classes_)

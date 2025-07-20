@@ -20,3 +20,5 @@ save_label_encoder = "./models/saved_models/label_encoder.pkl"
 
 save_random_forest_model = "./models/saved_models/random_forest_classifier.pkl"
 save_label_encoder_rf = "./models/saved_models/label_encoder_rf.pkl"
+
+classify_ensemble = "./models/saved_models/classify_ensemble_model.pkl"
