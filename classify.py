@@ -20,7 +20,6 @@ from utils.directories_utils import (
     data_output, save_gradient_boosting_model, save_label_encoder, save_random_forest_model, classify_ensemble
 )
 from utils.extractor_utils import merge_features_with_csv
-from sklearn.metrics import classification_report, accuracy_score
 
 # Model imports
 from models.gradient_boosting.train_gradient_boosting import classify_fish_with_gradient_boosting
@@ -28,6 +27,8 @@ from models.gradient_boosting.test_gradient_boosting import gradientBoostingClas
 
 from models.random_forest.train_random_forest import classify_fish_with_random_forest
 from models.random_forest.test_random_forest import randomForestClassifier
+
+from models.train_classify_ensemble import classify_with_ensemble
 
 os.makedirs(train_output, exist_ok=True)
 os.makedirs(valid_output, exist_ok=True)
@@ -109,22 +110,4 @@ def classify_random_forest():
     randomForestClassifier()   
 
 def ensemble_soft_voting():
-
-    test_df = pd.read_csv(f"{data_output}{size_test_data}")
-
-    X_test = test_df.drop(columns=["mapped_class"])
-    y_test = test_df['mapped_class'] 
-    
-    le = joblib.load(save_label_encoder)
-    y_test_encoded = le.transform(y_test)
-    
-    ensemble_model = joblib.load(classify_ensemble)
-    ensemble_preds = ensemble_model.predict(X_test)
-
-    accuracy = accuracy_score(y_test_encoded, ensemble_preds)
-    report = classification_report(y_test_encoded, ensemble_preds, target_names=le.classes_)
-
-    print(f"Ensemble Test Accuracy: {accuracy:.4f}")
-    print("Classification Report (Ensemble):")
-    print(report)
-
+    classify_with_ensemble()

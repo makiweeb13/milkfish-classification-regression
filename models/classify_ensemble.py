@@ -1,7 +1,6 @@
 import joblib
 import numpy as np
 
-
 # Load your trained models
 gb_model = joblib.load("models/saved_models/gradient_boosting_classifier.pkl")
 rf_model = joblib.load("models/saved_models/random_forest_classifier.pkl")
@@ -25,8 +24,3 @@ class SoftVotingEnsemble:
     def predict(self, X):
         proba = self.predict_proba(X)
         return np.argmax(proba, axis=1)
-
-# Create and save the ensemble model
-ensemble_model = SoftVotingEnsemble(models=[gb_model, rf_model])
-joblib.dump(ensemble_model, "models/saved_models/classify_ensemble_model.pkl")
-print('Ensemble model saved successfully')

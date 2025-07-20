@@ -16,13 +16,13 @@ def main():
     print("Feature extraction process completed.")
 
     print("Starting training process...")
-    # train_gradient_boosting()
-    # train_random_forest()
+    train_gradient_boosting()
+    train_random_forest()
     print("Training process completed.")
 
     print("Starting classification process...")
-    # classify_gradient_boosting()
-    # classify_random_forest()
+    classify_gradient_boosting()
+    classify_random_forest()
     ensemble_soft_voting()  
 
     print("Classification process completed.")
