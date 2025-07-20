@@ -6,16 +6,16 @@ from utils.directories_utils import (
 )
 from sklearn.metrics import classification_report, accuracy_score
 
-# Load your trained models
-gb_model = joblib.load(save_gradient_boosting_model)
-rf_model = joblib.load(save_random_forest_model)
-
-# Create model
-ensemble = SoftVotingEnsemble([gb_model, rf_model])
-joblib.dump(ensemble, classify_ensemble)
-print('Ensemble model saved successfully')
 
 def classify_with_ensemble():
+    # Load your trained models
+    gb_model = joblib.load(save_gradient_boosting_model)
+    rf_model = joblib.load(save_random_forest_model)
+
+    # Create model
+    ensemble = SoftVotingEnsemble([gb_model, rf_model])
+    joblib.dump(ensemble, classify_ensemble)
+
     test_df = pd.read_csv(f"{data_output}{size_test_data}")
 
     X_test = test_df.drop(columns=["mapped_class"])

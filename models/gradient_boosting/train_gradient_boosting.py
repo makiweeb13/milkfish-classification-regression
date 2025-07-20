@@ -33,19 +33,20 @@ def classify_fish_with_gradient_boosting():
 
     # Hyperparameter tuning using RandomizedSearchCV
     param_dist = {
-        'n_estimators': [50, 100, 150, 200, 250],
-        'learning_rate': [0.01, 0.05, 0.1, 0.2],
-        'max_depth': [2, 3, 4, 5],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 3, 5],
-        'subsample': [0.6, 0.8, 1.0]
+        'n_estimators': [100, 200, 300, 400, 500],
+        'learning_rate': [0.005, 0.01, 0.05, 0.1, 0.2],
+        'max_depth': [2, 3, 4, 5, 6],
+        'min_samples_split': [2, 5, 10, 20],
+        'min_samples_leaf': [1, 2, 4, 6],
+        'subsample': [0.5, 0.6, 0.8, 1.0],
+        'max_features': ['sqrt', 'log2', None]
     }
 
     # Perform RandomizedSearchCV
     random_search = RandomizedSearchCV(
         gb_model,
         param_distributions=param_dist,
-        n_iter=20,
+        n_iter=25,
         scoring='accuracy',
         cv=3,
         verbose=2,
@@ -81,6 +82,20 @@ def classify_fish_with_gradient_boosting():
     print("Classification Report (Validation):")
     print(classification_report(y_valid_encoded, y_valid_pred, target_names=le.classes_))
 
+    # Print feature importance
+    feature_names = X_train.columns
+    feature_importance = best_model.feature_importances_
+    importance_df = pd.DataFrame({
+        'feature': feature_names,
+        'importance': feature_importance
+    }).sort_values('importance', ascending=False)
+    
+    print("\nFeature Importance (Top 10):")
+    print(importance_df.head(10))
+
     # Save model and label encoder
     joblib.dump(best_model, save_gradient_boosting_model)
     joblib.dump(le, save_label_encoder)
+
+    print(f"\nModel saved to: {save_gradient_boosting_model}")
+    print(f"Label encoder saved to: {save_label_encoder}")

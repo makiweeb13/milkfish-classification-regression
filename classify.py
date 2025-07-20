@@ -109,5 +109,5 @@ def train_random_forest():
 def classify_random_forest():
     randomForestClassifier()   
 
-def ensemble_soft_voting():
+def classify_ensemble_soft_voting():
     classify_with_ensemble()
