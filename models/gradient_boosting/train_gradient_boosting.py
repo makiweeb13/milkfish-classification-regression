@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.calibration import CalibratedClassifierCV
 from scipy.stats import uniform, randint
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
@@ -64,6 +65,23 @@ def classify_fish_with_gradient_boosting():
     # Get the best model from RandomizedSearchCV
     best_model = random_search.best_estimator_
 
+    # Print feature importance
+    feature_names = X_train.columns
+    feature_importance = best_model.feature_importances_
+    importance_df = pd.DataFrame({
+        'feature': feature_names,
+        'importance': feature_importance
+    }).sort_values('importance', ascending=False)
+    
+    print("\nFeature Importance (Top 10):")
+    print(importance_df.head(10))
+
+    # Calibrate the model using validation data (cv='prefit' means base_model is already trained)
+    calibrated_model = CalibratedClassifierCV(best_model, method='isotonic', cv='prefit')
+    calibrated_model.fit(X_valid, y_valid_encoded)
+
+    best_model = calibrated_model 
+
     # Predict on validation set
     y_valid_proba = best_model.predict_proba(X_valid)
     y_valid_pred = np.argmax(y_valid_proba, axis=1)
@@ -81,17 +99,6 @@ def classify_fish_with_gradient_boosting():
     print("Validation Accuracy:", accuracy_score(y_valid_encoded, y_valid_pred))
     print("Classification Report (Validation):")
     print(classification_report(y_valid_encoded, y_valid_pred, target_names=le.classes_))
-
-    # Print feature importance
-    feature_names = X_train.columns
-    feature_importance = best_model.feature_importances_
-    importance_df = pd.DataFrame({
-        'feature': feature_names,
-        'importance': feature_importance
-    }).sort_values('importance', ascending=False)
-    
-    print("\nFeature Importance (Top 10):")
-    print(importance_df.head(10))
 
     # Save model and label encoder
     joblib.dump(best_model, save_gradient_boosting_model)
