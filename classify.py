@@ -3,7 +3,6 @@ import cv2
 import numpy as np
 import pandas as pd
 from data.loader import load_yolo_dataset
-import joblib
 from utils.image_utils import (
     load_image,
     crop_roi,
@@ -16,8 +15,7 @@ from utils.directories_utils import (
     train_images, train_labels, train_output,
     valid_images, valid_labels, valid_output,
     test_images, test_labels, test_output,
-    size_train_data, size_valid_data, size_test_data,
-    data_output, save_gradient_boosting_model, save_label_encoder, save_random_forest_model, classify_ensemble
+    size_train_data, size_valid_data, size_test_data, data_output
 )
 from utils.extractor_utils import merge_features_with_csv
 
@@ -27,6 +25,8 @@ from models.gradient_boosting.test_gradient_boosting import gradientBoostingClas
 
 from models.random_forest.train_random_forest import classify_fish_with_random_forest
 from models.random_forest.test_random_forest import randomForestClassifier
+
+from models.svm.ensemble_svm import ensemble_with_svm
 
 from models.train_classify_ensemble import classify_with_ensemble
 
@@ -69,11 +69,11 @@ def extract_features():
     load_yolo_dataset(valid_images, valid_labels, f"{data_output}{size_valid_data}")
     load_yolo_dataset(test_images, test_labels, f"{data_output}{size_test_data}")
 
-    # # Preprocess and segment train_images
-    # print("Segmenting images...")
-    # segment_fish_u2net(train_images, train_output)
-    # segment_fish_u2net(valid_images, valid_output)
-    # segment_fish_u2net(test_images, test_output)
+    # Preprocess and segment train_images
+    print("Segmenting images...")
+    segment_fish_u2net(train_images, train_output)
+    segment_fish_u2net(valid_images, valid_output)
+    segment_fish_u2net(test_images, test_output)
 
     # Extract features and merge with existing CSV
     print("Extracting features...")
@@ -103,11 +103,18 @@ def train_gradient_boosting():
 def classify_gradient_boosting():
     gradientBoostingClassifier()
 
+
 def train_random_forest():
     classify_fish_with_random_forest()
 
+
 def classify_random_forest():
-    randomForestClassifier()   
+    randomForestClassifier()  
+
 
 def classify_ensemble_soft_voting():
     classify_with_ensemble()
+    
+
+def classify_ensemble_svm():
+    ensemble_with_svm()
