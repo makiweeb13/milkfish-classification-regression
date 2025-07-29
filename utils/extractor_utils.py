@@ -53,7 +53,9 @@ def extract_morphometrics(mask_path):
         "solidity": solidity,
         "convex_hull_area": hull_area,
         "equivalent_diameter": equivalent_diameter,
-        "feret_diameter": feret_diameter
+        "feret_diameter": feret_diameter,
+        "aspect_ratio": aspect_ratio,
+        "circularity": circularity
     }
 
 def normalize_features(df):
@@ -75,7 +77,8 @@ def merge_features_with_csv(existing_csv_path, mask_dir, output_csv_path):
         except:
             features = {k: np.nan for k in [
                 "length", "width", "area", "perimeter", "solidity",
-                "convex_hull_area", "equivalent_diameter", "feret_diameter"
+                "convex_hull_area", "equivalent_diameter", "feret_diameter",
+                "aspect_ratio", "circularity"
             ]}
         features_list.append(features)
 

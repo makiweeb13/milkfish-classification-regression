@@ -17,8 +17,8 @@ def main():
     print("Feature extraction process completed.")
 
     print("Starting training process...")
-    # train_gradient_boosting()
-    # train_random_forest()
+    train_gradient_boosting()
+    train_random_forest()
     print("Training process completed.")
 
     print("Starting classification process...")
