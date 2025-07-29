@@ -5,6 +5,7 @@ from classify import (
     classify_gradient_boosting,
     train_random_forest,
     classify_random_forest,
+    classify_ensemble_soft_voting,
     classify_ensemble_svm
 )
 

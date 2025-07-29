@@ -2,10 +2,12 @@ import pandas as pd
 import numpy as np
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
 from utils.directories_utils import (
-    size_valid_data, size_test_data, data_output, save_gradient_boosting_model, save_label_encoder, save_random_forest_model
+    size_valid_data, size_test_data, data_output, save_gradient_boosting_model, 
+    save_label_encoder, save_random_forest_model, classify_svm_meta
 )
 
 def ensemble_with_svm():
@@ -33,9 +35,19 @@ def ensemble_with_svm():
     scaler = StandardScaler()
     meta_X_val = scaler.fit_transform(meta_X_val)
 
-    # Meta-model: SVM
-    svm_meta = SVC(probability=True, kernel='rbf', C=1.0)
-    svm_meta.fit(meta_X_val, y_valid_encoded)
+    # Define the parameter grid for SVM
+    param_grid = {
+        'C': [0.01, 0.1, 1, 10, 100],
+        'gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1, 10],
+        'kernel': ['rbf']
+    }
+
+    grid = GridSearchCV(SVC(probability=True), param_grid, cv=5)
+    grid.fit(meta_X_val, y_valid_encoded)
+    print("Best params:", grid.best_params_)
+
+    # Use the best estimator from GridSearchCV
+    svm_meta = grid.best_estimator_
 
     # Load test data
     test_df = pd.read_csv(f"{data_output}{size_test_data}")
@@ -56,6 +68,9 @@ def ensemble_with_svm():
 
     # Predict with the SVM meta-model
     svm_meta_preds = svm_meta.predict(meta_X_test)
+
+    # Save the SVM model
+    joblib.dump(svm_meta, classify_svm_meta)
 
     accuracy = accuracy_score(y_test_encoded, svm_meta_preds)
     report = classification_report(y_test_encoded, svm_meta_preds, target_names=le.classes_)
