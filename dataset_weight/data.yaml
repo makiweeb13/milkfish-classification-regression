@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 79
+names: ['1000 g', '1005 g', '1040 g', '1045 g', '1050 g', '1060 g', '1150 g', '315 g', '320 g', '325 g', '340 g', '345 g', '375 g', '380 g', '400 g', '410 g', '440 g', '450 g', '460 g', '465 g', '490 g', '495 g', '505 g', '510 g', '530 g', '540 g', '550 g', '555 g', '560 g', '565 g', '575 g', '580 g', '590 g', '595 g', '600 g', '605 g', '620 g', '625 g', '640 g', '650 g', '655 g', '660 g', '665 g', '675 g', '680 g', '690 g', '695 g', '700 g', '705 g', '710 g', '720 g', '730 g', '735 g', '740 g', '750 g', '780 g', '785 g', '790 g', '795 g', '800 g', '805 g', '815 g', '820 g', '835 g', '845 g', '850 g', '855 g', '860 g', '880 g', '890 g', '895 g', '900 g', '905 g', '910 g', '940 g', '945 g', '960 g', '985 g', '995 g']
+
+roboflow:
+  workspace: milkfishweight
+  project: milkfish-weight-test2-lwdug
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/milkfishweight/milkfish-weight-test2-lwdug/dataset/1
