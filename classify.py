@@ -92,27 +92,3 @@ def exists(path):
         print(f"Directory {path} does not exist.")
         return False
     return True
-
-
-def train_gradient_boosting():
-    classify_fish_with_gradient_boosting()
-
-
-def classify_gradient_boosting():
-    gradientBoostingClassifier()
-
-
-def train_random_forest():
-    classify_fish_with_random_forest()
-
-
-def classify_random_forest():
-    randomForestClassifier()  
-
-
-def classify_ensemble_soft_voting():
-    classify_with_ensemble()
-
-
-def classify_ensemble_svm():
-    ensemble_with_svm()

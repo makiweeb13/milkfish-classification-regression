@@ -10,7 +10,8 @@ from utils.image_utils import segment_fish_u2net
 from utils.extractor_utils import merge_features_with_csv
 
 # Model imports
-
+from models.gradient_boosting.train_gradient_boosting import regress_fish_with_gradient_boosting
+from models.gradient_boosting.test_gradient_boosting import gradientBoostingRegressor
 
 def extract_features_weight():
     # Load YOLO dataset

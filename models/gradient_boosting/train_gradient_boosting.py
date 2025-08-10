@@ -1,15 +1,17 @@
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.calibration import CalibratedClassifierCV
 from scipy.stats import uniform, randint
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error
 import joblib
 from utils.directories_utils import (
     data_output, size_train_data, size_valid_data,
-    save_gradient_boosting_model, save_label_encoder
+    save_gradient_boosting_model, save_label_encoder,
+    weight_train_data, weight_valid_data, regressor_gradient_boosting_model
 )
 
 def classify_fish_with_gradient_boosting():
@@ -106,3 +108,32 @@ def classify_fish_with_gradient_boosting():
 
     print(f"\nModel saved to: {save_gradient_boosting_model}")
     print(f"Label encoder saved to: {save_label_encoder}")
+
+
+def regress_fish_with_gradient_boosting():
+    # Load training and validation data
+    train_df = pd.read_csv(f"{data_output}{weight_train_data}")
+    valid_df = pd.read_csv(f"{data_output}{weight_valid_data}")
+
+    # Split features and labels
+    X_train = train_df.drop(columns=["weight"])
+    y_train = train_df["weight"].astype(float)
+
+    X_valid = valid_df.drop(columns=["weight"])
+    y_valid = valid_df["weight"].astype(float)
+
+    # Train Gradient Boosting Regressor
+    gb_regressor = GradientBoostingRegressor(n_estimators=200, learning_rate=0.1, max_depth=3, random_state=42)
+    gb_regressor.fit(X_train, y_train)
+
+    # Predict on validation set
+    y_valid_pred = gb_regressor.predict(X_valid)
+
+    # Evaluate on validation set
+    rmse = np.sqrt(np.mean((y_valid - y_valid_pred) ** 2))
+    print(f"Validation RMSE: {rmse:.4f}")
+
+    # Save the regressor model
+    joblib.dump(gb_regressor, regressor_gradient_boosting_model)
+
+    print(f"Regressor model saved to: {regressor_gradient_boosting_model}")

@@ -1,16 +1,18 @@
 # main.py
 from classify import (
     extract_features,
-    train_gradient_boosting,
-    classify_gradient_boosting,
-    train_random_forest,
-    classify_random_forest,
-    classify_ensemble_soft_voting,
-    classify_ensemble_svm
+    classify_fish_with_gradient_boosting,
+    gradientBoostingClassifier,
+    classify_fish_with_random_forest,
+    randomForestClassifier,
+    classify_with_ensemble,
+    classify_with_svm
 )
 
 from regress import (
-    extract_features_weight
+    extract_features_weight,
+    regress_fish_with_gradient_boosting,
+    gradientBoostingRegressor
 )
 
 def main():
@@ -21,19 +23,27 @@ def main():
     print("Size feature extraction process completed.")
 
     print("Starting classification training process...")
-    # train_gradient_boosting()
-    # train_random_forest()
+    # classify_fish_with_gradient_boosting()
+    # classify_fish_with_random_forest()
     print("Classification training process completed.")
 
     print("Starting classification process...")
-    # classify_gradient_boosting()
-    # classify_random_forest()
-    # classify_ensemble_svm()
+    # gradientBoostingClassifier()
+    # randomForestClassifier()
+    # classify_with_svm()
     print("Classification process completed.")
 
     print("Starting weight feature extraction process...")
     # extract_features_weight()
     print("Weight feature extraction process completed.")
+
+    print("Starting regression training process...")
+    regress_fish_with_gradient_boosting()
+    print("Regression training process completed.")
+
+    print("Starting regression process...")
+    gradientBoostingRegressor()
+    print("Regression process completed.")
 
 
 if __name__ == "__main__":
