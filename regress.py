@@ -13,6 +13,9 @@ from utils.extractor_utils import merge_features_with_csv
 from models.gradient_boosting.train_gradient_boosting import regress_fish_with_gradient_boosting
 from models.gradient_boosting.test_gradient_boosting import gradientBoostingRegressor
 
+from models.random_forest.train_random_forest import regress_fish_with_random_forest
+from models.random_forest.test_random_forest import randomForestRegressor
+
 def extract_features_weight():
     # Load YOLO dataset
     load_weight_dataset(train_weight_images, train_weight_labels, f"{data_output}{weight_train_data}")

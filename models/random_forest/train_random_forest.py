@@ -1,15 +1,17 @@
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.calibration import CalibratedClassifierCV
 from scipy.stats import randint
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error
 import joblib
 from utils.directories_utils import (
     data_output, size_train_data, size_valid_data,
-    save_random_forest_model, save_label_encoder_rf
+    save_random_forest_model, save_label_encoder_rf,
+    weight_train_data, weight_valid_data, regressor_random_forest_model
 )
 
 def classify_fish_with_random_forest():
@@ -106,3 +108,41 @@ def classify_fish_with_random_forest():
     
     print(f"\nModel saved to: {save_random_forest_model}")
     print(f"Label encoder saved to: {save_label_encoder_rf}")
+
+
+def regress_fish_with_random_forest():
+    # Load training and validation data
+    train_df = pd.read_csv(f"{data_output}{weight_train_data}")
+    valid_df = pd.read_csv(f"{data_output}{weight_valid_data}")
+
+    # Split features and labels
+    X_train = train_df.drop(columns=["weight"])
+    y_train = train_df["weight"].astype(float)
+
+    X_valid = valid_df.drop(columns=["weight"])
+    y_valid = valid_df["weight"].astype(float)
+
+    # Train Gradient Boosting Regressor
+    rf_regressor = RandomForestRegressor(
+        n_estimators=200, 
+        max_depth=None, 
+        min_samples_split=2, 
+        min_samples_leaf=1, 
+        random_state=42, 
+        max_features='sqrt', 
+        bootstrap=True, 
+        n_jobs=1
+    )
+    rf_regressor.fit(X_train, y_train)
+
+    # Predict on validation set
+    y_valid_pred = rf_regressor.predict(X_valid)
+
+    # Evaluate on validation set
+    rmse = root_mean_squared_error(y_valid, y_valid_pred)
+    print(f"Validation RMSE: {rmse:.4f}")
+
+    # Save the regressor model
+    joblib.dump(rf_regressor, regressor_random_forest_model)
+
+    print(f"Regressor model saved to: {regressor_random_forest_model}")

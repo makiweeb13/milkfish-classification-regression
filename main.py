@@ -12,7 +12,9 @@ from classify import (
 from regress import (
     extract_features_weight,
     regress_fish_with_gradient_boosting,
-    gradientBoostingRegressor
+    gradientBoostingRegressor,
+    regress_fish_with_random_forest,
+    randomForestRegressor
 )
 
 def main():
@@ -39,10 +41,12 @@ def main():
 
     print("Starting regression training process...")
     regress_fish_with_gradient_boosting()
+    regress_fish_with_random_forest()
     print("Regression training process completed.")
 
     print("Starting regression process...")
     gradientBoostingRegressor()
+    randomForestRegressor()
     print("Regression process completed.")
 
 

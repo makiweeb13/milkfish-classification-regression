@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import joblib
 from utils.directories_utils import (
@@ -43,3 +44,7 @@ def gradientBoostingRegressor():
     # Output example
     for i, pred in enumerate(y_test_pred[:]):
         print(f"True: {y_test.iloc[i]} | Predicted: {pred:.2f}")
+
+    # Evaluate on test set
+    rmse = np.sqrt(np.mean((y_test - y_test_pred) ** 2))
+    print(f"Test RMSE: {rmse:.4f}")
