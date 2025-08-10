@@ -1,41 +1,43 @@
 import os
 import cv2
-import pandas as pd
+from data.loader import load_yolo_dataset
 from utils.directories_utils import (
     train_weight_images, train_weight_labels, train_weight_output,
     valid_weight_images, valid_weight_labels, valid_weight_output,
     test_weight_images, test_weight_labels, test_weight_output,
-    # weight_train_data, weight_valid_data, weight_test_data, data_weight_output
+    weight_train_data, weight_valid_data, weight_test_data, data_output
 )
-from utils.image_utils import load_image, crop_roi, normalize_image, denoise_image, get_final_binary_mask
+from utils.image_utils import segment_fish_u2net
+from utils.extractor_utils import merge_features_with_csv
 
-def load_and_preprocess_train_weight_images(df):
-    for index, row in df.iterrows():
-        image_path = os.path.join(train_weight_images, row["image_id"] + ".jpg")
+# Model imports
 
-        # Load the full image
-        img = load_image(image_path)
-        if img is None:
-            print(f"Could not load image {image_path}")
-            continue
 
-        # Crop the fish ROI
-        crop = crop_roi(img, row["bbox_x"], row["bbox_y"], row["bbox_width"], row["bbox_height"])
+def extract_features_weight():
+    # Load YOLO dataset
+    load_yolo_dataset(train_weight_images, train_weight_labels, f"{data_output}{weight_train_data}")
+    load_yolo_dataset(valid_weight_images, valid_weight_labels, f"{data_output}{weight_valid_data}")
+    load_yolo_dataset(test_weight_images, test_weight_labels, f"{data_output}{weight_test_data}")
 
-        # Apply normalization, denoising, contrast enhancement
-        crop = normalize_image(crop)
-        crop = denoise_image(crop)
-        # crop = enhance_contrast(crop)
-        crop = get_final_binary_mask(crop)
+    # Preprocess and segment train_images
+    print("Segmenting images...")
+    segment_fish_u2net(train_weight_images, train_weight_output)
+    segment_fish_u2net(valid_weight_images, valid_weight_output)
+    segment_fish_u2net(test_weight_images, test_weight_output)
 
-        print(f"Processed {row['image_id']}")
+    # Extract features and merge with existing CSV
+    print("Extracting features...")
+    features_csv_path = f"{data_output}{weight_train_data}"
+    valid_features_csv_path = f"{data_output}{weight_valid_data}"
+    test_features_csv_path = f"{data_output}{weight_test_data}"
 
-        # Save processed image crop
-        save_path = os.path.join(
-            train_weight_output,
-            f"{row['image_id']}_processed.jpg"
-        )
-        cv2.imwrite(save_path, crop)
+    if not exists(features_csv_path) or not exists(valid_features_csv_path) or not exists(test_features_csv_path):
+        return
+    
+    merge_features_with_csv(features_csv_path, train_weight_output, features_csv_path)
+    merge_features_with_csv(valid_features_csv_path, valid_weight_output, valid_features_csv_path)
+    merge_features_with_csv(test_features_csv_path, test_weight_output, test_features_csv_path)
+
 
 def exists(path):
     if not os.path.exists(path):
