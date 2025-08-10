@@ -6,7 +6,7 @@ from classify import (
     classify_fish_with_random_forest,
     randomForestClassifier,
     classify_with_ensemble,
-    classify_with_svm
+    ensemble_with_svm
 )
 
 from regress import (
@@ -30,7 +30,7 @@ def main():
     print("Starting classification process...")
     # gradientBoostingClassifier()
     # randomForestClassifier()
-    # classify_with_svm()
+    # ensemble_with_svm()
     print("Classification process completed.")
 
     print("Starting weight feature extraction process...")

@@ -130,7 +130,7 @@ def regress_fish_with_gradient_boosting():
     y_valid_pred = gb_regressor.predict(X_valid)
 
     # Evaluate on validation set
-    rmse = np.sqrt(np.mean((y_valid - y_valid_pred) ** 2))
+    rmse = root_mean_squared_error(y_valid, y_valid_pred)
     print(f"Validation RMSE: {rmse:.4f}")
 
     # Save the regressor model
