@@ -27,12 +27,12 @@ classify_ensemble = "./models/saved_models/classify_ensemble_model.pkl"
 classify_svm_meta = "./models/saved_models/svm_meta_model.pkl"
 
 # Regression (Weight) directories
-train_weight_images = "./dataset_weight/train/images/"
-train_weight_labels = "./dataset_weight/train/labels/"
-valid_weight_images = "./dataset_weight/valid/images/"
-valid_weight_labels = "./dataset_weight/valid/labels/"
-test_weight_images = "./dataset_weight/test/images/"
-test_weight_labels = "./dataset_weight/test/labels/"
+train_weight_images = "./weight_dataset/train/images/"
+train_weight_labels = "./weight_dataset/train/labelTxt/"
+valid_weight_images = "./weight_dataset/valid/images/"
+valid_weight_labels = "./weight_dataset/valid/labelTxt/"
+test_weight_images = "./weight_dataset/test/images/"
+test_weight_labels = "./weight_dataset/test/labelTxt/"
 
 train_weight_output = "./outputs/masks/weight_train_masks/"
 valid_weight_output = "./outputs/masks/weight_valid_masks/"

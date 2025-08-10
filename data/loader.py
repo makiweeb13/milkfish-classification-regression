@@ -52,3 +52,39 @@ def load_yolo_dataset(images_dir, labels_dir, output_dir):
     df.to_csv(output_dir, index=False)
 
     return df
+
+
+def load_weight_dataset(images_dir, labels_dir, output_dir):
+    data = []
+
+    for label_file in os.listdir(labels_dir):
+        if not label_file.endswith(".txt"):
+            continue
+
+        image_id = label_file.replace(".txt", "")
+        label_path = os.path.join(labels_dir, label_file)
+        image_path = os.path.join(images_dir, image_id + ".jpg")
+
+        with Image.open(image_path) as img:
+            img_width, img_height = img.size
+
+        with open(label_path, "r") as f:
+            lines = f.readlines()
+
+        for fish_id, line in enumerate(lines):
+            parts = line.strip().split()
+            weight = float(parts[8].replace("-g", ""))
+
+            data.append({
+                "image_id": image_id,
+                "fish_id": fish_id,
+                "weight": weight
+            })
+
+    df = pd.DataFrame(data)
+    print("Weight DataFrame loaded with {} rows.".format(len(df)))
+
+    # Optionally save
+    df.to_csv(output_dir, index=False)
+
+    return df

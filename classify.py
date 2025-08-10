@@ -25,12 +25,12 @@ from models.random_forest.train_random_forest import classify_fish_with_random_f
 from models.random_forest.test_random_forest import randomForestClassifier
 
 from models.svm.ensemble_svm import ensemble_with_svm
-
 from models.train_classify_ensemble import classify_with_ensemble
 
 os.makedirs(train_output, exist_ok=True)
 os.makedirs(valid_output, exist_ok=True)
 os.makedirs(test_output, exist_ok=True)
+
 
 def load_and_preprocess_train_images(df, image_path):
 

@@ -1,6 +1,5 @@
 import os
-import cv2
-from data.loader import load_yolo_dataset
+from data.loader import load_weight_dataset
 from utils.directories_utils import (
     train_weight_images, train_weight_labels, train_weight_output,
     valid_weight_images, valid_weight_labels, valid_weight_output,
@@ -15,9 +14,9 @@ from utils.extractor_utils import merge_features_with_csv
 
 def extract_features_weight():
     # Load YOLO dataset
-    load_yolo_dataset(train_weight_images, train_weight_labels, f"{data_output}{weight_train_data}")
-    load_yolo_dataset(valid_weight_images, valid_weight_labels, f"{data_output}{weight_valid_data}")
-    load_yolo_dataset(test_weight_images, test_weight_labels, f"{data_output}{weight_test_data}")
+    load_weight_dataset(train_weight_images, train_weight_labels, f"{data_output}{weight_train_data}")
+    load_weight_dataset(valid_weight_images, valid_weight_labels, f"{data_output}{weight_valid_data}")
+    load_weight_dataset(test_weight_images, test_weight_labels, f"{data_output}{weight_test_data}")
 
     # Preprocess and segment train_images
     print("Segmenting images...")
