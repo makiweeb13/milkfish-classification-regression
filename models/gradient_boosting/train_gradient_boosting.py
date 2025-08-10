@@ -123,7 +123,7 @@ def regress_fish_with_gradient_boosting():
     y_valid = valid_df["weight"].astype(float)
 
     # Train Gradient Boosting Regressor
-    gb_regressor = GradientBoostingRegressor(n_estimators=200, learning_rate=0.1, max_depth=3, random_state=42)
+    gb_regressor = GradientBoostingRegressor(n_estimators=400, learning_rate=0.001, max_depth=2, random_state=30)
     gb_regressor.fit(X_train, y_train)
 
     # Predict on validation set
