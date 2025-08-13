@@ -124,7 +124,7 @@ def regress_fish_with_random_forest():
 
     # Train Gradient Boosting Regressor
     rf_regressor = RandomForestRegressor(
-        n_estimators=200, 
+        n_estimators=400, 
         max_depth=None, 
         min_samples_split=2, 
         min_samples_leaf=1, 
