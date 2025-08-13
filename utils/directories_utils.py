@@ -42,3 +42,5 @@ weight_valid_data = "valid_fish_weight_dataframe.csv"
 weight_test_data = "test_fish_weight_dataframe.csv"
 regressor_gradient_boosting_model = "./models/saved_models/gradient_boosting_regressor.pkl"
 regressor_random_forest_model = "./models/saved_models/random_forest_regressor.pkl"
+
+regress_ensemble = "./models/saved_models/regress_ensemble_model.pkl"

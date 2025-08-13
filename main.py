@@ -14,7 +14,8 @@ from regress import (
     regress_fish_with_gradient_boosting,
     gradientBoostingRegressor,
     regress_fish_with_random_forest,
-    randomForestRegressor
+    randomForestRegressor,
+    regress_with_ensemble
 )
 
 def main():
@@ -41,12 +42,13 @@ def main():
 
     print("Starting regression training process...")
     # regress_fish_with_gradient_boosting()
-    regress_fish_with_random_forest()
+    # regress_fish_with_random_forest()
     print("Regression training process completed.")
 
     print("Starting regression process...")
     # gradientBoostingRegressor()
-    randomForestRegressor()
+    # randomForestRegressor()
+    regress_with_ensemble()
     print("Regression process completed.")
 
 

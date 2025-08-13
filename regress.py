@@ -16,6 +16,8 @@ from models.gradient_boosting.test_gradient_boosting import gradientBoostingRegr
 from models.random_forest.train_random_forest import regress_fish_with_random_forest
 from models.random_forest.test_random_forest import randomForestRegressor
 
+from models.train_regress_ensemble import regress_with_ensemble
+
 def extract_features_weight():
     # Load YOLO dataset
     load_weight_dataset(train_weight_images, train_weight_labels, f"{data_output}{weight_train_data}")
