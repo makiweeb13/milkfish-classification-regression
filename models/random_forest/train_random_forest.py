@@ -135,6 +135,17 @@ def regress_fish_with_random_forest():
     )
     rf_regressor.fit(X_train, y_train)
 
+    # Print feature importance
+    feature_names = X_train.columns
+    feature_importance = rf_regressor.feature_importances_
+    importance_df = pd.DataFrame({
+        'feature': feature_names,
+        'importance': feature_importance
+    }).sort_values('importance', ascending=False)
+    
+    print("\nFeature Importance (Top 10):")
+    print(importance_df.head(10))
+
     # Predict on validation set
     y_valid_pred = rf_regressor.predict(X_valid)
 

@@ -126,6 +126,17 @@ def regress_fish_with_gradient_boosting():
     gb_regressor = GradientBoostingRegressor(n_estimators=400, learning_rate=0.001, max_depth=2, random_state=30)
     gb_regressor.fit(X_train, y_train)
 
+    # Print feature importance
+    feature_names = X_train.columns
+    feature_importance = gb_regressor.feature_importances_
+    importance_df = pd.DataFrame({
+        'feature': feature_names,
+        'importance': feature_importance
+    }).sort_values('importance', ascending=False)
+    
+    print("\nFeature Importance (Top 10):")
+    print(importance_df.head(10))
+
     # Predict on validation set
     y_valid_pred = gb_regressor.predict(X_valid)
 
