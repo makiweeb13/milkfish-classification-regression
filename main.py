@@ -22,22 +22,22 @@ def main():
     # Comment/Uncomment functions as needed
     
     print("Starting size feature extraction for process...")
-    # extract_features()
+    extract_features()
     print("Size feature extraction process completed.")
 
     print("Starting classification training process...")
-    # classify_fish_with_gradient_boosting()
-    # classify_fish_with_random_forest()
+    classify_fish_with_gradient_boosting()
+    classify_fish_with_random_forest()
     print("Classification training process completed.")
 
     print("Starting classification process...")
-    # gradientBoostingClassifier()
-    # randomForestClassifier()
-    # ensemble_with_svm()
+    gradientBoostingClassifier()
+    randomForestClassifier()
+    ensemble_with_svm()
     print("Classification process completed.")
 
     print("Starting weight feature extraction process...")
-    # extract_features_weight()
+    extract_features_weight()
     print("Weight feature extraction process completed.")
 
     print("Starting regression training process...")

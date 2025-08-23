@@ -24,11 +24,11 @@ def extract_features_weight():
     load_weight_dataset(valid_weight_images, valid_weight_labels, f"{data_output}{weight_valid_data}")
     load_weight_dataset(test_weight_images, test_weight_labels, f"{data_output}{weight_test_data}")
 
-    # Preprocess and segment train_images
-    print("Segmenting images...")
-    segment_fish_u2net(train_weight_images, train_weight_output)
-    segment_fish_u2net(valid_weight_images, valid_weight_output)
-    segment_fish_u2net(test_weight_images, test_weight_output)
+    # # Preprocess and segment train_images
+    # print("Segmenting images...")
+    # segment_fish_u2net(train_weight_images, train_weight_output)
+    # segment_fish_u2net(valid_weight_images, valid_weight_output)
+    # segment_fish_u2net(test_weight_images, test_weight_output)
 
     # Extract features and merge with existing CSV
     print("Extracting features...")
@@ -38,10 +38,10 @@ def extract_features_weight():
 
     if not exists(features_csv_path) or not exists(valid_features_csv_path) or not exists(test_features_csv_path):
         return
-    
-    merge_features_with_csv(features_csv_path, train_weight_output, features_csv_path)
-    merge_features_with_csv(valid_features_csv_path, valid_weight_output, valid_features_csv_path)
-    merge_features_with_csv(test_features_csv_path, test_weight_output, test_features_csv_path)
+
+    merge_features_with_csv(features_csv_path, train_weight_output, features_csv_path, "regress")
+    merge_features_with_csv(valid_features_csv_path, valid_weight_output, valid_features_csv_path, "regress")
+    merge_features_with_csv(test_features_csv_path, test_weight_output, test_features_csv_path, "regress")
 
 
 def exists(path):

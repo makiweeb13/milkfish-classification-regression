@@ -11,7 +11,8 @@ from utils.extractor_utils import extract_morphometrics, normalize_features
 from utils.directories_utils import (
     save_gradient_boosting_model, save_random_forest_model,
     regressor_gradient_boosting_model, regressor_random_forest_model,
-    classify_svm_meta, regress_ensemble, save_label_encoder
+    classify_svm_meta, regress_ensemble, save_label_encoder, 
+    saved_class_scaler, saved_regress_scaler
 )
 
 app = FastAPI(title="Milkfish Class and Weight Prediction API")
@@ -24,6 +25,8 @@ gb_regressor = joblib.load(regressor_gradient_boosting_model)
 rf_regressor = joblib.load(regressor_random_forest_model)
 ensemble_regressor = joblib.load(regress_ensemble)
 label_encoder = joblib.load(save_label_encoder)
+class_scaler = joblib.load(saved_class_scaler)
+regress_scaler = joblib.load(saved_regress_scaler)
 
 # Create a new folder for the image
 folder_path = "uploaded_image"
@@ -64,13 +67,21 @@ def predict(file: UploadFile = File(...)):
         # Step 5: Extract morphometric features from segmented image
         features = extract_morphometrics(segmented_image_path)
         features_df = pd.DataFrame([features])
+        print("Extracted Features:", features_df)
 
         # Step 6: Normalize features
-        normalized_features = normalize_features(features_df)
+        normalized_features_class = class_scaler.transform(features_df)
+        normalized_features_regress = regress_scaler.transform(features_df)
+        normalized_features_class_df = pd.DataFrame(normalized_features_class, columns=features_df.columns)
+        normalized_features_regress_df = pd.DataFrame(normalized_features_regress, columns=features_df.columns)
+
+        print("Normalized Features (Classification):", normalized_features_class)
+        print("Normalized Features (Regression):", normalized_features_regress)
+
 
         # Step 7: Classify fish species
-        gb_class_pred = gb_classifier.predict(normalized_features)
-        rf_class_pred = rf_classifier.predict(normalized_features)
+        gb_class_pred = gb_classifier.predict(normalized_features_class_df)
+        rf_class_pred = rf_classifier.predict(normalized_features_class_df)
 
         meta_features = np.column_stack([rf_class_pred, gb_class_pred])
 
@@ -80,7 +91,7 @@ def predict(file: UploadFile = File(...)):
         print("Decoded Fish Class:", fish_class)
 
         # Step 8: Predict fish weight
-        fish_weight = ensemble_regressor.predict(normalized_features)
+        fish_weight = ensemble_regressor.predict(normalized_features_regress_df)
 
         # Optional: If you want to send the segmented image back
         # with open(output_path, "rb") as img_file:

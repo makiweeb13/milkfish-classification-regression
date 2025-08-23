@@ -82,9 +82,9 @@ def extract_features():
     if not exists(features_csv_path) or not exists(valid_features_csv_path) or not exists(test_features_csv_path):
         return
 
-    merge_features_with_csv(features_csv_path, train_output, features_csv_path)
-    merge_features_with_csv(valid_features_csv_path, valid_output, valid_features_csv_path)
-    merge_features_with_csv(test_features_csv_path, test_output, test_features_csv_path)  
+    merge_features_with_csv(features_csv_path, train_output, features_csv_path, "classify")
+    merge_features_with_csv(valid_features_csv_path, valid_output, valid_features_csv_path, "classify")
+    merge_features_with_csv(test_features_csv_path, test_output, test_features_csv_path, "classify")
 
 
 def exists(path):

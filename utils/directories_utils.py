@@ -44,3 +44,6 @@ regressor_gradient_boosting_model = "./models/saved_models/gradient_boosting_reg
 regressor_random_forest_model = "./models/saved_models/random_forest_regressor.pkl"
 
 regress_ensemble = "./models/saved_models/regress_ensemble_model.pkl"
+
+saved_class_scaler = "./models/saved_models/class_scaler.pkl"
+saved_regress_scaler = "./models/saved_models/regress_scaler.pkl"

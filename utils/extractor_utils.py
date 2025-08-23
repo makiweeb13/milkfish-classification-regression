@@ -1,8 +1,12 @@
 import os
 import cv2
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+from .directories_utils import (
+    saved_class_scaler, saved_regress_scaler
+)
 
 def extract_morphometrics(mask_path):
     mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
@@ -58,13 +62,17 @@ def extract_morphometrics(mask_path):
         "circularity": circularity
     }
 
-def normalize_features(df):
+def normalize_features(df, mode):
     feature_cols = df.columns.drop(["mapped_class"], errors='ignore')
     scaler = MinMaxScaler()
     df[feature_cols] = scaler.fit_transform(df[feature_cols])
+    if mode == "classify":
+        joblib.dump(scaler, saved_class_scaler)
+    elif mode == "regress":
+        joblib.dump(scaler, saved_regress_scaler)
     return df
 
-def merge_features_with_csv(existing_csv_path, mask_dir, output_csv_path):
+def merge_features_with_csv(existing_csv_path, mask_dir, output_csv_path, mode):
     df = pd.read_csv(existing_csv_path)
     features_list = []
 
@@ -83,7 +91,7 @@ def merge_features_with_csv(existing_csv_path, mask_dir, output_csv_path):
         features_list.append(features)
 
     features_df = pd.DataFrame(features_list)
-    features_df = normalize_features(features_df)
+    features_df = normalize_features(features_df, mode)
     merged_df = pd.concat([df, features_df], axis=1)
     merged_df = merged_df.drop(columns=['image_id', 'fish_id', 'original_class'], errors='ignore')
     merged_df.to_csv(output_csv_path, index=False)

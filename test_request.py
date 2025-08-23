@@ -1,11 +1,15 @@
 import requests
+import os
+import time
 
 url = "http://localhost:8000/predict"
+image_dir = "dataset/test/images"
 
-files = {
-    'file': open('weight_dataset/test/images/IMG_2455_jpg.rf.86a65051965901a67ba987b92d87aae8.jpg', 'rb')
-}
-
-response = requests.post(url, files=files)
-
-print(response.json())
+for filename in os.listdir(image_dir):
+    if filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+        file_path = os.path.join(image_dir, filename)
+        with open(file_path, 'rb') as f:
+            files = {'file': f}
+            response = requests.post(url, files=files)
+            print(f"Result for {filename}: {response.json()}")
+        time.sleep(0.5)
