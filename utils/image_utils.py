@@ -128,7 +128,7 @@ def hybrid_segmentation(image):
 
 
 # --- U2Net Segmentation ---
-def segment_fish_u2net(image_path, output_path):
+def segment_fish_u2net(image_path, output_dir):
     """
     Applies U2-Net segmentation on a single image or a folder of images.
 
@@ -136,10 +136,14 @@ def segment_fish_u2net(image_path, output_path):
         image_path (str): Path to an image file or folder of images.
         output_path (str): Directory to save the predicted masks.
     """
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
-    
-    segment_with_u2net(image_path, output_path, model_dir='u2net/saved_models/u2netp/u2netp.pth')
+    print(f"Segmenting: {image_path} -> {output_dir}")
+    segment_with_u2net(
+        image_dir=os.path.dirname(image_path),
+        prediction_dir=output_dir,
+        model_dir="u2net/saved_models/u2netp/u2netp.pth"
+    )
+    print("Segmentation complete.")
+
 
 # --- Morphological Operations ---
 
