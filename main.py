@@ -36,20 +36,20 @@ def main():
     ensemble_with_svm()
     print("Classification process completed.")
 
-    print("Starting weight feature extraction process...")
-    extract_features_weight()
-    print("Weight feature extraction process completed.")
+    # print("Starting weight feature extraction process...")
+    # extract_features_weight()
+    # print("Weight feature extraction process completed.")
 
-    print("Starting regression training process...")
-    regress_fish_with_gradient_boosting()
-    regress_fish_with_random_forest()
-    print("Regression training process completed.")
+    # print("Starting regression training process...")
+    # regress_fish_with_gradient_boosting()
+    # regress_fish_with_random_forest()
+    # print("Regression training process completed.")
 
-    print("Starting regression process...")
-    gradientBoostingRegressor()
-    randomForestRegressor()
-    regress_with_ensemble()
-    print("Regression process completed.")
+    # print("Starting regression process...")
+    # gradientBoostingRegressor()
+    # randomForestRegressor()
+    # regress_with_ensemble()
+    # print("Regression process completed.")
 
 
 if __name__ == "__main__":

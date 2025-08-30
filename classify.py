@@ -67,11 +67,11 @@ def extract_features():
     load_yolo_dataset(valid_images, valid_labels, f"{data_output}{size_valid_data}")
     load_yolo_dataset(test_images, test_labels, f"{data_output}{size_test_data}")
 
-    # # Preprocess and segment train_images
-    # print("Segmenting images...")
-    # segment_fish_u2net(train_images, train_output)
-    # segment_fish_u2net(valid_images, valid_output)
-    # segment_fish_u2net(test_images, test_output)
+    # Preprocess and segment train_images
+    print("Segmenting images...")
+    segment_fish_u2net(train_images, train_output)
+    segment_fish_u2net(valid_images, valid_output)
+    segment_fish_u2net(test_images, test_output)
 
     # Extract features and merge with existing CSV
     print("Extracting features...")
