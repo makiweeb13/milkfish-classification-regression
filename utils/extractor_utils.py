@@ -3,6 +3,7 @@ import cv2
 import joblib
 import numpy as np
 import pandas as pd
+import glob
 from sklearn.preprocessing import MinMaxScaler
 from .directories_utils import (
     saved_class_scaler, saved_regress_scaler
@@ -79,9 +80,19 @@ def merge_features_with_csv(existing_csv_path, mask_dir, output_csv_path, mode):
     for idx, row in df.iterrows():
         image_id = row['image_id']
         print(f"[{idx + 1}/{len(df)}] Extracting features from: {image_id}.png")
-        mask_path = os.path.join(mask_dir, f"{image_id}.png")
+        # Use glob to find the mask file with possible suffixes
+        mask_pattern = os.path.join(mask_dir, f"{image_id}*.png")
+        mask_files = glob.glob(mask_pattern)
+        if mask_files:
+            mask_path = mask_files[0]
+        else:
+            mask_path = None
         try:
-            features = extract_morphometrics(mask_path)
+            features = extract_morphometrics(mask_path) if mask_path else {k: np.nan for k in [
+                "length", "width", "area", "perimeter", "solidity",
+                "convex_hull_area", "equivalent_diameter", "feret_diameter",
+                "aspect_ratio", "circularity"
+            ]}
         except:
             features = {k: np.nan for k in [
                 "length", "width", "area", "perimeter", "solidity",
@@ -93,6 +104,6 @@ def merge_features_with_csv(existing_csv_path, mask_dir, output_csv_path, mode):
     features_df = pd.DataFrame(features_list)
     features_df = normalize_features(features_df, mode)
     merged_df = pd.concat([df, features_df], axis=1)
-    merged_df = merged_df.drop(columns=['image_id', 'fish_id', 'original_class'], errors='ignore')
+    merged_df = merged_df.drop(columns=['image_id', 'fish_id', 'original_class', 'bbox_x', 'bbox_y', 'bbox_width', 'bbox_height'], errors='ignore')
     merged_df.to_csv(output_csv_path, index=False)
     print(f"Merged CSV saved to: {output_csv_path}")

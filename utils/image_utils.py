@@ -35,6 +35,39 @@ def resize_image(image, size=(640, 640)):
     return cv2.resize(image, size, interpolation=cv2.INTER_AREA)
 
 
+def resize_with_padding(image, target_size=(640, 640), pad_color=0):
+    """
+    Resize the image to the target size with padding to maintain aspect ratio.
+
+    Args:
+        image (numpy.ndarray): Input image.
+        target_size (tuple): Desired output size (width, height).
+        pad_color (int): Padding color (default is 0 for black).
+
+    Returns:
+        numpy.ndarray: Resized image with padding.
+    """
+    h, w = image.shape[:2]
+    target_w, target_h = target_size
+
+    # Compute scale and new size
+    scale = min(target_w / w, target_h / h)
+    new_w, new_h = int(w * scale), int(h * scale)
+    resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
+    # Compute padding
+    pad_w = target_w - new_w
+    pad_h = target_h - new_h
+    top = pad_h // 2
+    bottom = pad_h - top
+    left = pad_w // 2
+    right = pad_w - left
+
+    # Add border
+    padded = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=pad_color)
+    return padded
+
+
 # Normalize pixel values to [0, 255]
 def normalize_image(image):
     """
@@ -177,3 +210,60 @@ def get_final_binary_mask(image):
     mask = apply_opening(mask)
     mask = apply_closing(mask)
     return mask
+
+def load_and_preprocess_images(df, images_input, images_output,  image_path):
+
+    for index, row in df.iterrows():
+        image_path = os.path.join(images_input, row["image_id"] + ".jpg")
+
+        # Load the full image
+        img = load_image(image_path)
+        if img is None:
+            print(f"Could not load image {image_path}")
+            continue
+
+        # Crop the fish ROI
+        crop = crop_roi(img, row["bbox_x"], row["bbox_y"], row["bbox_width"], row["bbox_height"])
+
+        # Apply normalization, denoising, contrast enhancement
+        # crop = normalize_image(crop)
+        # crop = denoise_image(crop)
+        # crop = enhance_contrast(crop)
+        # crop = get_final_binary_mask(crop)
+
+        print(f"Processed {row['image_id']} fish {row['fish_id']} of class {row['mapped_class']}")
+
+        # Save processed image crop
+        save_path = os.path.join(
+            images_output,
+            f"{row['image_id']}_fish{row['fish_id']}_{row['mapped_class'].replace(' ', '')}.jpg"
+        )
+        cv2.imwrite(save_path, crop)
+
+
+def resize_images_in_directory(input_dir, output_dir, size=(640, 640), pad_color=0):
+    """
+    Resize all images in the input directory to the specified size with padding,
+    and save them to the output directory.
+
+    Args:
+        input_dir (str): Directory containing input images.
+        output_dir (str): Directory to save resized images.
+        size (tuple): Desired output size (width, height).
+        pad_color (int or tuple): Padding color (default is 0 for black).
+    """
+    os.makedirs(output_dir, exist_ok=True)
+
+    for filename in os.listdir(input_dir):
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tiff')):
+            image_path = os.path.join(input_dir, filename)
+            image = load_image(image_path)
+            if image is None:
+                print(f"Could not load image {image_path}")
+                continue
+
+            resized = resize_with_padding(image, target_size=size, pad_color=pad_color)
+
+            save_path = os.path.join(output_dir, filename)
+            cv2.imwrite(save_path, resized)
+            print(f"Resized and saved: {save_path}")

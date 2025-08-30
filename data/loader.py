@@ -25,12 +25,12 @@ def load_yolo_dataset(images_dir, labels_dir, output_dir):
         for fish_id, line in enumerate(lines):
             parts = line.strip().split()
             class_id = int(parts[0])
-            # x_center, y_center, width, height = map(float, parts[1:])
+            x_center, y_center, width, height = map(float, parts[1:])
 
-            # bbox_width = width * img_width
-            # bbox_height = height * img_height
-            # bbox_x = x_center * img_width
-            # bbox_y = y_center * img_height
+            bbox_width = width * img_width
+            bbox_height = height * img_height
+            bbox_x = x_center * img_width
+            bbox_y = y_center * img_height
 
             original_class, mapped_class = YOLO_CLASS_MAP[class_id]
 
@@ -38,11 +38,11 @@ def load_yolo_dataset(images_dir, labels_dir, output_dir):
                 "image_id": image_id,
                 "fish_id": fish_id,
                 "original_class": original_class,
-                "mapped_class": mapped_class
-                # "bbox_x": bbox_x,
-                # "bbox_y": bbox_y,
-                # "bbox_width": bbox_width,
-                # "bbox_height": bbox_height
+                "mapped_class": mapped_class,
+                "bbox_x": bbox_x,
+                "bbox_y": bbox_y,
+                "bbox_width": bbox_width,
+                "bbox_height": bbox_height
             })
 
     df = pd.DataFrame(data)

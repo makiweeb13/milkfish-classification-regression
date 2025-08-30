@@ -9,6 +9,10 @@ valid_labels = "./dataset/valid/labels/"
 test_images = "./dataset/test/images/"
 test_labels = "./dataset/test/labels/"
 
+size_train_cropped = "./outputs/cropped/size_train_cropped/"
+size_valid_cropped = "./outputs/cropped/size_valid_cropped/"
+size_test_cropped = "./outputs/cropped/size_test_cropped/"
+
 train_output = "./outputs/masks/size_train_masks/"
 valid_output = "./outputs/masks/size_valid_masks/"
 test_output = "./outputs/masks/size_test_masks/"

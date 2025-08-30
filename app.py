@@ -113,3 +113,6 @@ def predict(file: UploadFile = File(...)):
             "status": "error",
             "message": str(e)
         }, status_code=500)
+
+# TO RUN SERVER LOCALLY USE THIS COMMAND:
+# uvicorn app:app --reload --host 0.0.0.0 --port 8000

@@ -1,19 +1,13 @@
 import os
 import cv2
 from data.loader import load_yolo_dataset
-from utils.image_utils import (
-    load_image,
-    crop_roi,
-    normalize_image,
-    denoise_image,
-    get_final_binary_mask,
-    segment_fish_u2net
-)
+from utils.image_utils import segment_fish_u2net, load_and_preprocess_images, resize_images_in_directory
 from utils.directories_utils import (
     train_images, train_labels, train_output,
     valid_images, valid_labels, valid_output,
     test_images, test_labels, test_output,
-    size_train_data, size_valid_data, size_test_data, data_output
+    size_train_data, size_valid_data, size_test_data, data_output,
+    size_train_cropped, size_valid_cropped, size_test_cropped
 )
 from utils.extractor_utils import merge_features_with_csv
 
@@ -32,46 +26,29 @@ os.makedirs(valid_output, exist_ok=True)
 os.makedirs(test_output, exist_ok=True)
 
 
-def load_and_preprocess_train_images(df, image_path):
-
-    for index, row in df.iterrows():
-        image_path = os.path.join(train_images, row["image_id"] + ".jpg")
-
-        # Load the full image
-        img = load_image(image_path)
-        if img is None:
-            print(f"Could not load image {image_path}")
-            continue
-
-        # Crop the fish ROI
-        crop = crop_roi(img, row["bbox_x"], row["bbox_y"], row["bbox_width"], row["bbox_height"])
-
-        # Apply normalization, denoising, contrast enhancement
-        crop = normalize_image(crop)
-        crop = denoise_image(crop)
-        # crop = enhance_contrast(crop)
-        crop = get_final_binary_mask(crop)
-
-        print(f"Processed {row['image_id']} fish {row['fish_id']} of class {row['mapped_class']}")
-
-        # Save processed image crop
-        save_path = os.path.join(
-            train_output,
-            f"{row['image_id']}_fish{row['fish_id']}_{row['mapped_class'].replace(' ', '')}.jpg"
-        )
-        cv2.imwrite(save_path, crop)
-
 def extract_features():
     # Load YOLO dataset
-    load_yolo_dataset(train_images, train_labels, f"{data_output}{size_train_data}")
-    load_yolo_dataset(valid_images, valid_labels, f"{data_output}{size_valid_data}")
-    load_yolo_dataset(test_images, test_labels, f"{data_output}{size_test_data}")
+    train_df = load_yolo_dataset(train_images, train_labels, f"{data_output}{size_train_data}")
+    valid_df = load_yolo_dataset(valid_images, valid_labels, f"{data_output}{size_valid_data}")
+    test_df = load_yolo_dataset(test_images, test_labels, f"{data_output}{size_test_data}")
+
+    # # Crop and preprocess train_images
+    # print("Loading and preprocessing train images...")
+    # load_and_preprocess_images(train_df, train_images, size_train_cropped, f"{data_output}{size_train_data}")
+    # load_and_preprocess_images(valid_df, valid_images, size_valid_cropped, f"{data_output}{size_valid_data}")
+    # load_and_preprocess_images(test_df, test_images, size_test_cropped, f"{data_output}{size_test_data}")
 
     # # Preprocess and segment train_images
     # print("Segmenting images...")
-    # segment_fish_u2net(train_images, train_output)
-    # segment_fish_u2net(valid_images, valid_output)
-    # segment_fish_u2net(test_images, test_output)
+    # segment_fish_u2net(size_train_cropped, train_output)
+    # segment_fish_u2net(size_valid_cropped, valid_output)
+    # segment_fish_u2net(size_test_cropped, test_output)
+
+    # # Resize images
+    # print("Resizing images...")
+    # resize_images_in_directory(train_output, train_output)
+    # resize_images_in_directory(valid_output, valid_output)
+    # resize_images_in_directory(test_output, test_output)
 
     # Extract features and merge with existing CSV
     print("Extracting features...")
