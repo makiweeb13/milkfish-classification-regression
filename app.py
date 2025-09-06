@@ -12,7 +12,7 @@ from utils.directories_utils import (
     save_gradient_boosting_model, save_random_forest_model,
     regressor_gradient_boosting_model, regressor_random_forest_model,
     classify_svm_meta, regress_ensemble, save_label_encoder, 
-    saved_class_scaler, saved_regress_scaler
+    saved_class_scaler, saved_regress_scaler, saved_class_ensemble_scaler
 )
 
 app = FastAPI(title="Milkfish Class and Weight Prediction API")
@@ -26,6 +26,7 @@ rf_regressor = joblib.load(regressor_random_forest_model)
 ensemble_regressor = joblib.load(regress_ensemble)
 label_encoder = joblib.load(save_label_encoder)
 class_scaler = joblib.load(saved_class_scaler)
+class_ensemble_scaler = joblib.load(saved_class_ensemble_scaler) 
 regress_scaler = joblib.load(saved_regress_scaler)
 
 # Create a new folder for the image
@@ -84,6 +85,7 @@ def predict(file: UploadFile = File(...)):
         rf_class_pred = rf_classifier.predict(normalized_features_class_df)
 
         meta_features = np.column_stack([rf_class_pred, gb_class_pred])
+        meta_features = class_ensemble_scaler.transform(meta_features)
 
         fish_class = ensemble_svm_classifier.predict(meta_features)
         fish_class = label_encoder.inverse_transform(fish_class)
@@ -113,3 +115,7 @@ def predict(file: UploadFile = File(...)):
             "status": "error",
             "message": str(e)
         }, status_code=500)
+    
+# TO TEST SERVER:
+# 1. Run the FastAPI app using uvicorn
+#    Command: uvicorn app:app --reload --host 0.0.0.0 --port 8000

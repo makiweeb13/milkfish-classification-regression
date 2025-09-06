@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score, classification_report
 import joblib
 from utils.directories_utils import (
     size_valid_data, size_test_data, data_output, save_gradient_boosting_model, 
-    save_label_encoder, save_random_forest_model, classify_svm_meta
+    save_label_encoder, save_random_forest_model, classify_svm_meta, saved_class_ensemble_scaler
 )
 
 def ensemble_with_svm():
@@ -34,6 +34,7 @@ def ensemble_with_svm():
     # Normalize the meta-features using StandardScaler
     scaler = StandardScaler()
     meta_X_val = scaler.fit_transform(meta_X_val)
+    joblib.dump(scaler, saved_class_ensemble_scaler)  # Save the scaler for future use
 
     # Define the parameter grid for SVM
     param_grid = {

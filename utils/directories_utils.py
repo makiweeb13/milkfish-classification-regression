@@ -46,4 +46,5 @@ regressor_random_forest_model = "./models/saved_models/random_forest_regressor.p
 regress_ensemble = "./models/saved_models/regress_ensemble_model.pkl"
 
 saved_class_scaler = "./models/saved_models/class_scaler.pkl"
+saved_class_ensemble_scaler = "./models/saved_models/class_ensemble_scaler.pkl"
 saved_regress_scaler = "./models/saved_models/regress_scaler.pkl"
