@@ -30,59 +30,6 @@ pip install opencv-python numpy pandas scikit-learn scikit_image matplotlib torc
 
 ---
 
-## Image Utilities (utils/image_utils.py)
-Implemented functions:
-
-1. **Image Loading**
-```python
-load_image(path: str) -> np.ndarray
-```
-
-2. **ROI Cropping**
-```python
-crop_roi(image: np.ndarray, x: float, y: float, w: float, h: float) -> np.ndarray
-```
-
-3. **Normalization**
-```python
-normalize_image(image: np.ndarray) -> np.ndarray
-```
-
-4. **Noise Reduction**
-```python
-denoise_image(image: np.ndarray) -> np.ndarray
-```
-
-5. **Contrast Enhancement (CLAHE)**(to remove)
-```python
-enhance_contrast(image: np.ndarray) -> np.ndarray
-```
-
-6. **Background Removal (Otsu)**
-```python
-remove_background_otsu(image: np.ndarray) -> np.ndarray
-```
-
-7. **Background Removal (GrabCut)**
-```python
-remove_background_grabcut(image: np.ndarray, iterations: int) -> np.ndarray
-```
-
-8. **Hybrid Segmentation Function**
-```python
-hybrid_segmentation(image: np.ndarray, iterations: int = 5) -> np.ndarray
-```
-- Combines denoising, CLAHE, Otsu thresholding, and GrabCut segmentation with morphological refinement.
-- Addresses shape accuracy (Otsu) and hole reduction (GrabCut).
-
-9. **U²-Net Pre-trained Segmentation Model**
-```python
-segment_fish_u2net(image_path: str, output_path: str)
-```
-- U²-Net is an open-source pre-trained model used for segmentation.
-- Achieves much higher segmentation accuracy.
----
-
 ## Feature Extraction Utilities (utils/extractor_utils.py)
 Implemented functions:
 
@@ -131,3 +78,80 @@ For each fish:
     - Train and validate GB using train and valid sets ```train_gradient_boosting.py```
     - Save model and label encoder ```gradient_boosting_classifier.pkl, label_encoder.pkl```
     - Test model and output predictions and their probabilities ```test_gradient_boosting.py```
+  - **Random Forest**
+    - Train and validate RF using train and valid sets `train_random_forest.py`
+    - Save model and label encoder `random_forest_classifier.pkl`
+    - Test model and output predictions and their probabilities `test_random_forest.py`
+
+## Ensemble Methods
+
+### Classification Ensembles
+1. **Support Vector Machine (SVM)**
+   - Trained on combined predictions from GB and RF
+   - Uses probability outputs as feature vectors
+   - Helps in finding optimal decision boundary between classes
+
+2. **Soft Voting Classifier**
+   - Combines GB and RF predictions using weighted average of probabilities
+   - Weights determined through cross-validation
+   - Final prediction based on highest weighted probability
+
+### Regression Ensemble
+1. **Weighted Averaging**
+   - Combines weight predictions from GB and RF models
+   - Weights determined by model performance on validation set
+   - Final weight estimate calculated as:
+     ```
+     final_weight = (α × GB_prediction) + (β × RF_prediction)
+     ```
+     where α and β are optimized weights summing to 1
+
+## Model Performance
+- Classification metrics include:
+  - Accuracy: 95%
+  - Precision
+  - Recall
+  - F1-Score
+  - Confusion Matrix
+
+- Regression metrics include:
+  - Root Mean Square Error (RMSE): ~140g
+  - Mean Absolute Error (MAE)
+  - R-squared (R²)
+
+## API Implementation
+The trained models are hosted using FastAPI, providing endpoints for:
+- Size classification prediction
+- Weight estimation
+- Model performance metrics
+
+API endpoints:
+```
+POST /predict
+```
+
+## Mobile Application
+The models are integrated into a mobile application for easy access and visualization:
+- Repository: [thesis-app](https://github.com/makiweeb13/thesis-app)
+- Features:
+  - Capture fish images
+  - Results visualization
+
+## Output Structure
+```
+outputs/
+├── data/
+│   ├── test_fish_size_dataframe.csv
+│   ├── train_fish_size_dataframe.csv
+│   └── valid_fish_size_dataframe.csv
+├── masks/
+│   ├── size_test_masks/
+│   ├── size_train_masks/
+│   └── size_valid_masks/
+└── models/
+    ├── gradient_boosting_classifier.pkl
+    ├── random_forest_classifier.pkl
+    ├── label_encoder.pkl
+    ├── svm_ensemble.pkl
+    └── voting_ensemble.pkl
+```
