@@ -3,12 +3,13 @@ import numpy as np
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
 import joblib
 from utils.directories_utils import (
     size_valid_data, size_test_data, data_output, save_gradient_boosting_model, 
     save_label_encoder, save_random_forest_model, classify_svm_meta, saved_class_ensemble_scaler
 )
+import matplotlib.pyplot as plt
 
 def ensemble_with_svm():
     # Load your trained models
@@ -79,3 +80,14 @@ def ensemble_with_svm():
     print(f"SVM Ensemble Accuracy: {accuracy:.4f}")
     print("Classification Report (SVM):")
     print(report)
+
+    # Confusion matrix
+    cm = confusion_matrix(y_test_encoded, svm_meta_preds)
+    print("Confusion Matrix (counts):")
+    print(cm)
+
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.classes_)
+    disp.plot(cmap='gray', xticks_rotation='vertical')
+    plt.title("SVM Ensemble - Test Confusion Matrix")
+    plt.tight_layout()
+    plt.show()
