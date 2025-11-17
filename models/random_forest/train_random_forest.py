@@ -7,6 +7,8 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.calibration import CalibratedClassifierCV
 from scipy.stats import randint
 from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error
+from sklearn.model_selection import learning_curve
+import matplotlib.pyplot as plt
 import joblib
 from utils.directories_utils import (
     data_output, size_train_data, size_valid_data,
@@ -78,6 +80,18 @@ def classify_fish_with_random_forest():
     print("\nFeature Importance (Top 10):")
     print(importance_df.head(10))
 
+    # Save feature importances
+    feature_names = X_train.columns.tolist()
+    rf_importance_df = pd.DataFrame({
+        'feature': feature_names,
+        'importance': best_model.feature_importances_
+    }).sort_values('importance', ascending=False)
+    rf_importance_df.to_csv(f"{data_output}rf_feature_importances.csv", index=False)
+    
+    print(f"\nModel saved to: {save_random_forest_model}")
+    print(f"Label encoder saved to: {save_label_encoder_rf}")
+    print(f"Feature importances saved to: {data_output}rf_feature_importances.csv")
+
     # Calibrate the model using validation data (cv='prefit' means base_model is already trained)
     calibrated_model = CalibratedClassifierCV(best_model, method='isotonic', cv='prefit')
     calibrated_model.fit(X_valid, y_valid_encoded)
@@ -102,12 +116,42 @@ def classify_fish_with_random_forest():
     print("Classification Report (Validation):")
     print(classification_report(y_valid_encoded, y_valid_pred, target_names=le.classes_))
 
+    # --- Learning curve (training vs validation accuracy) ---
+    # Use the base estimator from random_search for learning curve (un-calibrated)
+    base_estimator = random_search.best_estimator_
+    try:
+        train_sizes, train_scores, test_scores = learning_curve(
+            base_estimator,
+            X_train, y_train_encoded,
+            cv=5,
+            scoring='accuracy',
+            n_jobs=-1,
+            train_sizes=np.linspace(0.1, 1.0, 5),
+            shuffle=True,
+            random_state=42
+        )
+        train_scores_mean = np.mean(train_scores, axis=1)
+        test_scores_mean = np.mean(test_scores, axis=1)
+
+        plt.figure(figsize=(7,5))
+        plt.plot(train_sizes, train_scores_mean, 'o-', color='0.2', label='Training score')
+        plt.plot(train_sizes, test_scores_mean, 's-', color='0.6', label='Validation score')
+        plt.fill_between(train_sizes, train_scores_mean - np.std(train_scores, axis=1),
+                         train_scores_mean + np.std(train_scores, axis=1), color='0.2', alpha=0.1)
+        plt.fill_between(train_sizes, test_scores_mean - np.std(test_scores, axis=1),
+                         test_scores_mean + np.std(test_scores, axis=1), color='0.6', alpha=0.1)
+        plt.xlabel('Training examples')
+        plt.ylabel('Accuracy')
+        plt.title('Learning Curve (Random Forest)')
+        plt.legend(loc='best')
+        plt.tight_layout()
+        plt.show()
+    except Exception as e:
+        print("Could not compute learning curve:", e)
+
     # Save model and label encoder
     joblib.dump(best_model, save_random_forest_model)
     joblib.dump(le, save_label_encoder_rf)
-    
-    print(f"\nModel saved to: {save_random_forest_model}")
-    print(f"Label encoder saved to: {save_label_encoder_rf}")
 
 
 def regress_fish_with_random_forest():

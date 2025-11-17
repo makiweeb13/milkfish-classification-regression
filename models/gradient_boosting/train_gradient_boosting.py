@@ -7,12 +7,14 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.calibration import CalibratedClassifierCV
 from scipy.stats import uniform, randint
 from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error
+from sklearn.model_selection import learning_curve
 import joblib
 from utils.directories_utils import (
     data_output, size_train_data, size_valid_data,
     save_gradient_boosting_model, save_label_encoder,
     weight_train_data, weight_valid_data, regressor_gradient_boosting_model
 )
+import matplotlib.pyplot as plt
 
 def classify_fish_with_gradient_boosting():
     # Load training and validation data
@@ -78,6 +80,18 @@ def classify_fish_with_gradient_boosting():
     print("\nFeature Importance (Top 10):")
     print(importance_df.head(10))
 
+     # Save feature importances
+    feature_names = X_train.columns.tolist()
+    gb_importance_df = pd.DataFrame({
+        'feature': feature_names,
+        'importance': best_model.feature_importances_
+    }).sort_values('importance', ascending=False)
+    gb_importance_df.to_csv(f"{data_output}gb_feature_importances.csv", index=False)
+    
+    print(f"\nModel saved to: {save_gradient_boosting_model}")
+    print(f"Label encoder saved to: {save_label_encoder}")
+    print(f"Feature importances saved to: {data_output}gb_feature_importances.csv")
+
     # Calibrate the model using validation data (cv='prefit' means base_model is already trained)
     calibrated_model = CalibratedClassifierCV(best_model, method='isotonic', cv='prefit')
     calibrated_model.fit(X_valid, y_valid_encoded)
@@ -102,12 +116,126 @@ def classify_fish_with_gradient_boosting():
     print("Classification Report (Validation):")
     print(classification_report(y_valid_encoded, y_valid_pred, target_names=le.classes_))
 
+    # --- Learning curve (training vs validation accuracy) ---
+    try:
+        # use the uncalibrated best estimator for learning curve
+        base_estimator = random_search.best_estimator_
+        train_sizes, train_scores, test_scores = learning_curve(
+            base_estimator,
+            X_train, y_train_encoded,
+            cv=5,
+            scoring='accuracy',
+            n_jobs=-1,
+            train_sizes=np.linspace(0.1, 1.0, 5),
+            shuffle=True,
+            random_state=42
+        )
+        train_scores_mean = np.mean(train_scores, axis=1)
+        test_scores_mean = np.mean(test_scores, axis=1)
+
+        plt.figure(figsize=(7, 5))
+        plt.plot(train_sizes, train_scores_mean, 'o-', color='0.2', label='Training score')
+        plt.plot(train_sizes, test_scores_mean, 's-', color='0.6', label='Validation score')
+        plt.fill_between(train_sizes, train_scores_mean - np.std(train_scores, axis=1),
+                         train_scores_mean + np.std(train_scores, axis=1), color='0.2', alpha=0.1)
+        plt.fill_between(train_sizes, test_scores_mean - np.std(test_scores, axis=1),
+                         test_scores_mean + np.std(test_scores, axis=1), color='0.6', alpha=0.1)
+        plt.xlabel('Training examples')
+        plt.ylabel('Accuracy')
+        plt.title('Learning Curve (Gradient Boosting)')
+        plt.legend(loc='best')
+        plt.tight_layout()
+        plt.show()
+    except Exception as e:
+        print("Could not compute learning curve:", e)
+
+    # --- Training/Validation Loss Curve ---
+    try:
+        # Retrain best model and track loss at each iteration
+        best_params = random_search.best_params_
+        gb_loss_model = GradientBoostingClassifier(
+            **best_params,
+            validation_fraction=0.2,
+            n_iter_no_change=None,
+            warm_start=False
+        )
+        gb_loss_model.fit(X_train, y_train_encoded)
+        
+        # Get training loss per iteration
+        train_loss = gb_loss_model.train_score_
+        
+        plt.figure(figsize=(7, 5))
+        plt.plot(range(len(train_loss)), train_loss, 'o-', color='0.2', linewidth=2, label='Training Loss')
+        plt.xlabel('Iteration (n_estimators)')
+        plt.ylabel('Loss')
+        plt.title('Training Loss Curve (Gradient Boosting)')
+        plt.legend(loc='best')
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.show()
+    except Exception as e:
+        print("Could not compute training loss curve:", e)
+
+    # --- Combined Learning Curve (accuracy) and Training Loss ---
+    try:
+        # Learning curve (training vs validation accuracy)
+        base_estimator = random_search.best_estimator_
+        train_sizes, train_scores, test_scores = learning_curve(
+            base_estimator,
+            X_train, y_train_encoded,
+            cv=5,
+            scoring='accuracy',
+            n_jobs=-1,
+            train_sizes=np.linspace(0.1, 1.0, 5),
+            shuffle=True,
+            random_state=42
+        )
+        train_scores_mean = np.mean(train_scores, axis=1)
+        test_scores_mean = np.mean(test_scores, axis=1)
+
+        # Training loss per iteration
+        best_params = random_search.best_params_
+        gb_loss_model = GradientBoostingClassifier(
+            **best_params,
+            validation_fraction=0.2,
+            n_iter_no_change=None,
+            warm_start=False
+        )
+        gb_loss_model.fit(X_train, y_train_encoded)
+        train_loss = gb_loss_model.train_score_
+
+        # Create subplots
+        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+        # Plot 1: Learning Curve
+        axes[0].plot(train_sizes, train_scores_mean, 'o-', color='0.2', label='Training score', linewidth=2)
+        axes[0].plot(train_sizes, test_scores_mean, 's-', color='0.6', label='Validation score', linewidth=2)
+        axes[0].fill_between(train_sizes, train_scores_mean - np.std(train_scores, axis=1),
+                             train_scores_mean + np.std(train_scores, axis=1), color='0.2', alpha=0.1)
+        axes[0].fill_between(train_sizes, test_scores_mean - np.std(test_scores, axis=1),
+                             test_scores_mean + np.std(test_scores, axis=1), color='0.6', alpha=0.1)
+        axes[0].set_xlabel('Training examples')
+        axes[0].set_ylabel('Accuracy')
+        axes[0].set_title('Learning Curve (Gradient Boosting)')
+        axes[0].legend(loc='best')
+        axes[0].grid(True, alpha=0.3)
+
+        # Plot 2: Training Loss Curve
+        axes[1].plot(range(len(train_loss)), train_loss, 'o-', color='0.2', linewidth=2, label='Training Loss')
+        axes[1].set_xlabel('Iteration (n_estimators)')
+        axes[1].set_ylabel('Loss')
+        axes[1].set_title('Training Loss Curve (Gradient Boosting)')
+        axes[1].legend(loc='best')
+        axes[1].grid(True, alpha=0.3)
+
+        plt.tight_layout()
+        plt.show()
+    except Exception as e:
+        print("Could not compute learning curve or training loss curve:", e)
+
     # Save model and label encoder
     joblib.dump(best_model, save_gradient_boosting_model)
     joblib.dump(le, save_label_encoder)
-
-    print(f"\nModel saved to: {save_gradient_boosting_model}")
-    print(f"Label encoder saved to: {save_label_encoder}")
 
 
 def regress_fish_with_gradient_boosting():

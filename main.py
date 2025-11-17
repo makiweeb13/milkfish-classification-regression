@@ -26,8 +26,8 @@ def main():
     print("Size feature extraction process completed.")
 
     print("Starting classification training process...")
-    classify_fish_with_gradient_boosting()
-    classify_fish_with_random_forest()
+    # classify_fish_with_gradient_boosting()
+    # classify_fish_with_random_forest()
     print("Classification training process completed.")
 
     print("Starting classification process...")
