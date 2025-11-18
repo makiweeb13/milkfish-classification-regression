@@ -6,7 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.calibration import CalibratedClassifierCV
 from scipy.stats import randint
-from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error
+from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error, mean_squared_error
 from sklearn.model_selection import learning_curve
 import matplotlib.pyplot as plt
 import joblib
@@ -166,38 +166,128 @@ def regress_fish_with_random_forest():
     X_valid = valid_df.drop(columns=["weight"])
     y_valid = valid_df["weight"].astype(float)
 
-    # Train Gradient Boosting Regressor
+    # Train Random Forest Regressor (final model)
+    final_n_estimators = 400
     rf_regressor = RandomForestRegressor(
-        n_estimators=400, 
+        n_estimators=final_n_estimators, 
         max_depth=None, 
         min_samples_split=2, 
         min_samples_leaf=1, 
         random_state=42, 
         max_features='sqrt', 
         bootstrap=True, 
-        n_jobs=1
+        n_jobs=-1
     )
     rf_regressor.fit(X_train, y_train)
 
-    # Print feature importance
-    feature_names = X_train.columns
-    feature_importance = rf_regressor.feature_importances_
-    importance_df = pd.DataFrame({
+    # Save regressor feature importances
+    feature_names = X_train.columns.tolist()
+    rf_regressor_importance_df = pd.DataFrame({
         'feature': feature_names,
-        'importance': feature_importance
+        'importance': rf_regressor.feature_importances_
     }).sort_values('importance', ascending=False)
-    
+    rf_regressor_importance_df.to_csv(f"{data_output}rf_regressor_feature_importances.csv", index=False)
+    print(f"Regressor feature importances saved to: {data_output}rf_regressor_feature_importances.csv")
+
+    # Print top feature importances
+    importance_df = rf_regressor_importance_df
     print("\nFeature Importance (Top 10):")
     print(importance_df.head(10))
 
-    # Predict on validation set
-    y_valid_pred = rf_regressor.predict(X_valid)
+    # --- Left: Learning curve (train/valid RMSE vs training size) ---
+    try:
+        train_sizes, train_scores, test_scores = learning_curve(
+            RandomForestRegressor(**{k: v for k, v in rf_regressor.get_params().items() if k != 'n_estimators'}),
+            X_train, y_train,
+            cv=5,
+            scoring='neg_mean_squared_error',
+            n_jobs=-1,
+            train_sizes=np.linspace(0.1, 1.0, 5),
+            shuffle=True,
+            random_state=42
+        )
+        # convert neg MSE -> RMSE
+        train_rmse_lc = np.sqrt(-np.mean(train_scores, axis=1))
+        valid_rmse_lc = np.sqrt(-np.mean(test_scores, axis=1))
+    except Exception as e:
+        print("Could not compute learning_curve for RF regressor:", e)
+        train_sizes, train_rmse_lc, valid_rmse_lc = None, None, None
 
-    # Evaluate on validation set
-    rmse = root_mean_squared_error(y_valid, y_valid_pred)
-    print(f"Validation RMSE: {rmse:.4f}")
+    # --- Right: RMSE vs n_estimators (incremental fit using warm_start) ---
+    try:
+        max_estimators = final_n_estimators
+        step = max(20, max_estimators // 20)  # about 20 points
+        estimators_range = list(range(step, max_estimators + 1, step))
+        rf_inc = RandomForestRegressor(
+            n_estimators=step,
+            warm_start=True,
+            max_depth=None,
+            min_samples_split=2,
+            min_samples_leaf=1,
+            random_state=42,
+            max_features='sqrt',
+            bootstrap=True,
+            n_jobs=-1
+        )
+
+        train_rmse_vs_estim = []
+        valid_rmse_vs_estim = []
+        for n in estimators_range:
+            rf_inc.n_estimators = n
+            rf_inc.fit(X_train, y_train)  # adds trees when warm_start=True
+            tr_pred = rf_inc.predict(X_train)
+            val_pred = rf_inc.predict(X_valid)
+            train_rmse_vs_estim.append(np.sqrt(mean_squared_error(y_train, tr_pred)))
+            valid_rmse_vs_estim.append(np.sqrt(mean_squared_error(y_valid, val_pred)))
+    except Exception as e:
+        print("Could not compute incremental n_estimators curve for RF regressor:", e)
+        estimators_range, train_rmse_vs_estim, valid_rmse_vs_estim = [], [], []
+
+    # --- Combined side-by-side plot ---
+    try:
+        fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+        # Left subplot: learning-curve RMSE
+        if train_sizes is not None:
+            axes[0].plot(train_sizes, train_rmse_lc, marker='o', color='0.2', linewidth=1.8, label='Train RMSE')
+            axes[0].plot(train_sizes, valid_rmse_lc, marker='s', color='0.6', linewidth=1.8, label='Valid RMSE')
+            axes[0].set_xlabel('Training examples')
+            axes[0].set_ylabel('RMSE')
+            axes[0].set_title('Learning Curve (RF Regressor) - RMSE')
+            axes[0].legend(loc='best')
+            axes[0].grid(alpha=0.3)
+        else:
+            axes[0].text(0.5, 0.5, 'Learning curve not available', ha='center', va='center')
+            axes[0].axis('off')
+
+        # Right subplot: RMSE vs n_estimators
+        if estimators_range:
+            axes[1].plot(estimators_range, train_rmse_vs_estim, marker='o', color='0.25', linewidth=1.8, label='Train RMSE')
+            axes[1].plot(estimators_range, valid_rmse_vs_estim, marker='s', color='0.6', linewidth=1.8, label='Valid RMSE')
+            axes[1].set_xlabel('n_estimators')
+            axes[1].set_ylabel('RMSE')
+            axes[1].set_title('RMSE vs n_estimators (RF Regressor)')
+            axes[1].legend(loc='best')
+            axes[1].grid(alpha=0.3)
+        else:
+            axes[1].text(0.5, 0.5, 'n_estimators curve not available', ha='center', va='center')
+            axes[1].axis('off')
+
+        plt.tight_layout()
+        plt.savefig(f"{data_output}rf_regressor_rmse_curves.png", dpi=150, bbox_inches='tight')
+        plt.show()
+        print(f"Saved RF regressor RMSE/estimators plot to: {data_output}rf_regressor_rmse_curves.png")
+    except Exception as e:
+        print("Could not create/save combined RF regressor plots:", e)
+
+    # Predict on validation set and report final RMSE
+    try:
+        y_valid_pred = rf_regressor.predict(X_valid)
+        rmse = np.sqrt(mean_squared_error(y_valid, y_valid_pred))
+        print(f"Validation RMSE: {rmse:.4f}")
+    except Exception as e:
+        print("Could not compute final validation RMSE:", e)
 
     # Save the regressor model
     joblib.dump(rf_regressor, regressor_random_forest_model)
-
     print(f"Regressor model saved to: {regressor_random_forest_model}")

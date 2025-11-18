@@ -6,7 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.calibration import CalibratedClassifierCV
 from scipy.stats import uniform, randint
-from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error
+from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error, mean_squared_error, r2_score
 from sklearn.model_selection import learning_curve
 import joblib
 from utils.directories_utils import (
@@ -254,8 +254,16 @@ def regress_fish_with_gradient_boosting():
     gb_regressor = GradientBoostingRegressor(n_estimators=400, learning_rate=0.001, max_depth=2, random_state=30)
     gb_regressor.fit(X_train, y_train)
 
+    # Save regressor feature importances
+    feature_names = X_train.columns.tolist()
+    gb_regressor_importance_df = pd.DataFrame({
+        'feature': feature_names,
+        'importance': gb_regressor.feature_importances_
+    }).sort_values('importance', ascending=False)
+    gb_regressor_importance_df.to_csv(f"{data_output}gb_regressor_feature_importances.csv", index=False)
+    print(f"Regressor feature importances saved to: {data_output}gb_regressor_feature_importances.csv")
+
     # Print feature importance
-    feature_names = X_train.columns
     feature_importance = gb_regressor.feature_importances_
     importance_df = pd.DataFrame({
         'feature': feature_names,
@@ -264,6 +272,69 @@ def regress_fish_with_gradient_boosting():
     
     print("\nFeature Importance (Top 10):")
     print(importance_df.head(10))
+
+    # Compute staged predictions to get training & validation RMSE per iteration
+    try:
+        train_rmse = []
+        valid_rmse = []
+        train_mse = []
+        valid_mse = []
+
+        # staged_predict yields predictions after each boosting iteration
+        for y_pred_train in gb_regressor.staged_predict(X_train):
+            mse_tr = mean_squared_error(y_train, y_pred_train)
+            train_mse.append(mse_tr)
+            train_rmse.append(np.sqrt(mse_tr))
+
+        for y_pred_val in gb_regressor.staged_predict(X_valid):
+            mse_val = mean_squared_error(y_valid, y_pred_val)
+            valid_mse.append(mse_val)
+            valid_rmse.append(np.sqrt(mse_val))
+
+        # training loss from the fitted estimator (deviance per iteration)
+        train_loss = gb_regressor.train_score_
+
+        # Create side-by-side chart:
+        # left: training & validation RMSE across iterations
+        # right: training loss (deviance) and validation MSE across iterations (scaled to similar range)
+        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+        # Left: RMSE
+        axes[0].plot(range(1, len(train_rmse) + 1), train_rmse, marker='o', color='0.2', linewidth=1.8, label='Train RMSE')
+        axes[0].plot(range(1, len(valid_rmse) + 1), valid_rmse, marker='s', color='0.6', linewidth=1.8, label='Valid RMSE')
+        axes[0].set_xlabel('Iteration (n_estimators)')
+        axes[0].set_ylabel('RMSE')
+        axes[0].set_title('Training vs Validation RMSE')
+        axes[0].legend(loc='best')
+        axes[0].grid(alpha=0.3)
+
+        # Right: Loss (deviance) and Validation MSE (scaled)
+        # Scale validation MSE to the range of train_loss for visual comparison
+        val_mse_arr = np.array(valid_mse)
+        if len(train_loss) == len(val_mse_arr):
+            # scale valid mse to train_loss range
+            val_mse_scaled = (val_mse_arr - val_mse_arr.min()) / (val_mse_arr.max() - val_mse_arr.min() + 1e-12)
+            train_loss_arr = np.array(train_loss)
+            train_loss_scaled = (train_loss_arr - train_loss_arr.min()) / (train_loss_arr.max() - train_loss_arr.min() + 1e-12)
+            axes[1].plot(range(1, len(train_loss) + 1), train_loss_arr, marker='o', color='0.25', linewidth=1.8, label='Train deviance')
+            axes[1].plot(range(1, len(val_mse_scaled) + 1), val_mse_scaled * (train_loss_arr.max()), marker='s', color='0.6', linewidth=1.8, label='Valid MSE (scaled)')
+            axes[1].set_ylabel('Deviance / (scaled Valid MSE)')
+        else:
+            # fallback: plot training loss only
+            axes[1].plot(range(1, len(train_loss) + 1), train_loss, marker='o', color='0.25', linewidth=1.8, label='Train deviance')
+
+        axes[1].set_xlabel('Iteration (n_estimators)')
+        axes[1].set_title('Training Loss (deviance) and Validation MSE (scaled)')
+        axes[1].legend(loc='best')
+        axes[1].grid(alpha=0.3)
+
+        plt.tight_layout()
+        # save figure to outputs folder
+        plt.savefig(f"{data_output}gb_regressor_rmse_loss_comparison.png", dpi=150, bbox_inches='tight')
+        plt.show()
+        print(f"Saved RMSE/loss comparison plot to: {data_output}gb_regressor_rmse_loss_comparison.png")
+    except Exception as e:
+        print("Could not compute staged RMSE/loss curves:", e)
 
     # Predict on validation set
     y_valid_pred = gb_regressor.predict(X_valid)

@@ -21,35 +21,35 @@ from regress import (
 def main():
     # Comment/Uncomment functions as needed
     
-    print("Starting size feature extraction for process...")
+    # print("Starting size feature extraction for process...")
     # extract_features()
-    print("Size feature extraction process completed.")
+    # print("Size feature extraction process completed.")
 
-    print("Starting classification training process...")
+    # print("Starting classification training process...")
     # classify_fish_with_gradient_boosting()
     # classify_fish_with_random_forest()
-    print("Classification training process completed.")
+    # print("Classification training process completed.")
 
-    print("Starting classification process...")
-    gradientBoostingClassifier()
-    randomForestClassifier()
-    ensemble_with_svm()
-    print("Classification process completed.")
+    # print("Starting classification process...")
+    # gradientBoostingClassifier()
+    # randomForestClassifier()
+    # ensemble_with_svm()
+    # print("Classification process completed.")
 
     # print("Starting weight feature extraction process...")
     # extract_features_weight()
     # print("Weight feature extraction process completed.")
 
-    # print("Starting regression training process...")
-    # regress_fish_with_gradient_boosting()
-    # regress_fish_with_random_forest()
-    # print("Regression training process completed.")
+    print("Starting regression training process...")
+    regress_fish_with_gradient_boosting()
+    regress_fish_with_random_forest()
+    print("Regression training process completed.")
 
-    # print("Starting regression process...")
-    # gradientBoostingRegressor()
-    # randomForestRegressor()
-    # regress_with_ensemble()
-    # print("Regression process completed.")
+    print("Starting regression process...")
+    gradientBoostingRegressor()
+    randomForestRegressor()
+    regress_with_ensemble()
+    print("Regression process completed.")
 
 
 if __name__ == "__main__":
