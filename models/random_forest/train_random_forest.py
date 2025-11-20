@@ -6,7 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.calibration import CalibratedClassifierCV
 from scipy.stats import randint
-from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error, mean_squared_error
+from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error, mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import learning_curve
 import matplotlib.pyplot as plt
 import joblib
@@ -280,13 +280,17 @@ def regress_fish_with_random_forest():
     except Exception as e:
         print("Could not create/save combined RF regressor plots:", e)
 
-    # Predict on validation set and report final RMSE
+    # Predict on validation set and report metrics
     try:
         y_valid_pred = rf_regressor.predict(X_valid)
         rmse = np.sqrt(mean_squared_error(y_valid, y_valid_pred))
-        print(f"Validation RMSE: {rmse:.4f}")
+        mae = mean_absolute_error(y_valid, y_valid_pred)
+        r2 = r2_score(y_valid, y_valid_pred)
+        print(f"\nValidation RMSE: {rmse:.4f}")
+        print(f"Validation MAE: {mae:.4f}")
+        print(f"Validation R²: {r2:.4f}")
     except Exception as e:
-        print("Could not compute final validation RMSE:", e)
+        print("Could not compute validation metrics:", e)
 
     # Save the regressor model
     joblib.dump(rf_regressor, regressor_random_forest_model)

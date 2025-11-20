@@ -6,7 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.calibration import CalibratedClassifierCV
 from scipy.stats import uniform, randint
-from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error, mean_squared_error, r2_score
+from sklearn.metrics import accuracy_score, classification_report, root_mean_squared_error, mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import learning_curve
 import joblib
 from utils.directories_utils import (
@@ -340,8 +340,15 @@ def regress_fish_with_gradient_boosting():
     y_valid_pred = gb_regressor.predict(X_valid)
 
     # Evaluate on validation set
-    rmse = root_mean_squared_error(y_valid, y_valid_pred)
-    print(f"Validation RMSE: {rmse:.4f}")
+    try:
+        rmse = root_mean_squared_error(y_valid, y_valid_pred)
+        mae = mean_absolute_error(y_valid, y_valid_pred)
+        r2 = r2_score(y_valid, y_valid_pred)
+        print(f"\nValidation RMSE: {rmse:.4f}")
+        print(f"Validation MAE: {mae:.4f}")
+        print(f"Validation R²: {r2:.4f}")
+    except Exception as e:
+        print("Could not compute validation metrics:", e)
 
     # Save the regressor model
     joblib.dump(gb_regressor, regressor_gradient_boosting_model)
