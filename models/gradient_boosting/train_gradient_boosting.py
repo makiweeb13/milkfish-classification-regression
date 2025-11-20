@@ -273,68 +273,73 @@ def regress_fish_with_gradient_boosting():
     print("\nFeature Importance (Top 10):")
     print(importance_df.head(10))
 
-    # Compute staged predictions to get training & validation RMSE per iteration
+    # --- Learning curve (train/valid RMSE vs training size) and staged n_estimators curve ---
     try:
-        train_rmse = []
-        valid_rmse = []
-        train_mse = []
-        valid_mse = []
+        # Left: Learning curve
+        train_sizes, train_scores, test_scores = learning_curve(
+            GradientBoostingRegressor(n_estimators=400, learning_rate=0.001, max_depth=2, random_state=30),
+            X_train, y_train,
+            cv=5,
+            scoring='neg_mean_squared_error',
+            n_jobs=-1,
+            train_sizes=np.linspace(0.1, 1.0, 5),
+            shuffle=True,
+            random_state=42
+        )
+        # Convert neg MSE to RMSE
+        train_rmse_lc = np.sqrt(-np.mean(train_scores, axis=1))
+        valid_rmse_lc = np.sqrt(-np.mean(test_scores, axis=1))
 
-        # staged_predict yields predictions after each boosting iteration
-        for y_pred_train in gb_regressor.staged_predict(X_train):
-            mse_tr = mean_squared_error(y_train, y_pred_train)
-            train_mse.append(mse_tr)
-            train_rmse.append(np.sqrt(mse_tr))
+        # Right: RMSE vs n_estimators using staged_predict
+        max_estimators = 400
+        step = max(20, max_estimators // 20)
+        estimators_range = list(range(step, max_estimators + 1, step))
+        
+        gb_inc = GradientBoostingRegressor(
+            n_estimators=step,
+            warm_start=True,
+            learning_rate=0.001,
+            max_depth=2,
+            random_state=30
+        )
 
-        for y_pred_val in gb_regressor.staged_predict(X_valid):
-            mse_val = mean_squared_error(y_valid, y_pred_val)
-            valid_mse.append(mse_val)
-            valid_rmse.append(np.sqrt(mse_val))
+        train_rmse_vs_estim = []
+        valid_rmse_vs_estim = []
+        for n in estimators_range:
+            gb_inc.n_estimators = n
+            gb_inc.fit(X_train, y_train)
+            tr_pred = gb_inc.predict(X_train)
+            val_pred = gb_inc.predict(X_valid)
+            train_rmse_vs_estim.append(np.sqrt(mean_squared_error(y_train, tr_pred)))
+            valid_rmse_vs_estim.append(np.sqrt(mean_squared_error(y_valid, val_pred)))
 
-        # training loss from the fitted estimator (deviance per iteration)
-        train_loss = gb_regressor.train_score_
-
-        # Create side-by-side chart:
-        # left: training & validation RMSE across iterations
-        # right: training loss (deviance) and validation MSE across iterations (scaled to similar range)
+        # Create side-by-side plot
         fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-        # Left: RMSE
-        axes[0].plot(range(1, len(train_rmse) + 1), train_rmse, marker='o', color='0.2', linewidth=1.8, label='Train RMSE')
-        axes[0].plot(range(1, len(valid_rmse) + 1), valid_rmse, marker='s', color='0.6', linewidth=1.8, label='Valid RMSE')
-        axes[0].set_xlabel('Iteration (n_estimators)')
+        # Left: Learning curve
+        axes[0].plot(train_sizes, train_rmse_lc, marker='o', color='0.2', linewidth=1.8, label='Train RMSE')
+        axes[0].plot(train_sizes, valid_rmse_lc, marker='s', color='0.6', linewidth=1.8, label='Valid RMSE')
+        axes[0].set_xlabel('Training examples')
         axes[0].set_ylabel('RMSE')
-        axes[0].set_title('Training vs Validation RMSE')
+        axes[0].set_title('Learning Curve (GB Regressor)')
         axes[0].legend(loc='best')
         axes[0].grid(alpha=0.3)
 
-        # Right: Loss (deviance) and Validation MSE (scaled)
-        # Scale validation MSE to the range of train_loss for visual comparison
-        val_mse_arr = np.array(valid_mse)
-        if len(train_loss) == len(val_mse_arr):
-            # scale valid mse to train_loss range
-            val_mse_scaled = (val_mse_arr - val_mse_arr.min()) / (val_mse_arr.max() - val_mse_arr.min() + 1e-12)
-            train_loss_arr = np.array(train_loss)
-            train_loss_scaled = (train_loss_arr - train_loss_arr.min()) / (train_loss_arr.max() - train_loss_arr.min() + 1e-12)
-            axes[1].plot(range(1, len(train_loss) + 1), train_loss_arr, marker='o', color='0.25', linewidth=1.8, label='Train deviance')
-            axes[1].plot(range(1, len(val_mse_scaled) + 1), val_mse_scaled * (train_loss_arr.max()), marker='s', color='0.6', linewidth=1.8, label='Valid MSE (scaled)')
-            axes[1].set_ylabel('Deviance / (scaled Valid MSE)')
-        else:
-            # fallback: plot training loss only
-            axes[1].plot(range(1, len(train_loss) + 1), train_loss, marker='o', color='0.25', linewidth=1.8, label='Train deviance')
-
-        axes[1].set_xlabel('Iteration (n_estimators)')
-        axes[1].set_title('Training Loss (deviance) and Validation MSE (scaled)')
+        # Right: RMSE vs n_estimators
+        axes[1].plot(estimators_range, train_rmse_vs_estim, marker='o', color='0.2', linewidth=1.8, label='Train RMSE')
+        axes[1].plot(estimators_range, valid_rmse_vs_estim, marker='s', color='0.6', linewidth=1.8, label='Valid RMSE')
+        axes[1].set_xlabel('n_estimators')
+        axes[1].set_ylabel('RMSE')
+        axes[1].set_title('RMSE vs n_estimators (GB Regressor)')
         axes[1].legend(loc='best')
         axes[1].grid(alpha=0.3)
 
         plt.tight_layout()
-        # save figure to outputs folder
-        plt.savefig(f"{data_output}gb_regressor_rmse_loss_comparison.png", dpi=150, bbox_inches='tight')
+        plt.savefig(f"{data_output}gb_regressor_rmse_curves.png", dpi=150, bbox_inches='tight')
         plt.show()
-        print(f"Saved RMSE/loss comparison plot to: {data_output}gb_regressor_rmse_loss_comparison.png")
+        print(f"Saved GB regressor RMSE curves to: {data_output}gb_regressor_rmse_curves.png")
     except Exception as e:
-        print("Could not compute staged RMSE/loss curves:", e)
+        print("Could not compute learning curve or n_estimators curves:", e)
 
     # Predict on validation set
     y_valid_pred = gb_regressor.predict(X_valid)
