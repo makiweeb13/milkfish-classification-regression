@@ -15,7 +15,8 @@ from regress import (
     gradientBoostingRegressor,
     regress_fish_with_random_forest,
     randomForestRegressor,
-    regress_with_ensemble
+    regress_with_ensemble,
+    run_regression_trials
 )
 
 def main():
@@ -40,14 +41,15 @@ def main():
     # extract_features_weight()
     # print("Weight feature extraction process completed.")
 
-    print("Starting regression training process...")
-    regress_fish_with_gradient_boosting()
-    regress_fish_with_random_forest()
-    print("Regression training process completed.")
+    # print("Starting regression training process...")
+    # regress_fish_with_gradient_boosting()
+    # regress_fish_with_random_forest()
+    # print("Regression training process completed.")
 
     print("Starting regression process...")
-    gradientBoostingRegressor()
-    randomForestRegressor()
+    # gradientBoostingRegressor()
+    # randomForestRegressor()
+    run_regression_trials()
     regress_with_ensemble()
     print("Regression process completed.")
 

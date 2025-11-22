@@ -17,6 +17,7 @@ from models.random_forest.train_random_forest import regress_fish_with_random_fo
 from models.random_forest.test_random_forest import randomForestRegressor
 
 from models.train_regress_ensemble import regress_with_ensemble
+from models.train_regress_ensemble import run_regression_trials
 
 def extract_features_weight():
     # Load YOLO dataset
