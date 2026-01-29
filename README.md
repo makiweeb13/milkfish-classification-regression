@@ -1,157 +1,93 @@
-# Milkfish Size Classification and Weight Estimation using Ensemble Learning
+# Milkfish Size Classification and Weight Estimation
 
 ---
 
 ## Objective
-To analyze individual milkfish from aquaculture images, classify their size class, and estimate their weight through image processing and ensemble learning techniques.
+Analyze individual milkfish in images to classify size categories and estimate weight using morphometric features and ensemble learning.
 
 ---
 
 ## Installation
+Install runtime dependencies listed in `requirements.txt` (recommended). Example:
 
-Run the following command to install required libraries:
-
+```bash
+pip install -r requirements.txt
 ```
-pip install opencv-python numpy pandas scikit-learn scikit_image matplotlib torch torchvision
-```
 
-## Dataset Preparation
-- **Format**: Pre-labeled YOLOv5 format dataset with .txt annotation files and YAML configuration.
-- **Mapping**:
-  - Class 0: "adult" → Class A (Large)
-  - Class 1: "semi-adult" → Class B (Medium)
-  - Class 2: "juvenile" → Class C (Small)
-
-**Processing Logic**:
-- Parse each YOLO annotation.
-- Convert relative coordinates to absolute pixel values using image dimensions.
-- Generate a Pandas DataFrame with fields:
-  - image_id, fish_id, original_class, mapped_class, bbox_x, bbox_y, bbox_width, bbox_height
+Docker is also supported; see the `Dockerfile` for the containerized runtime.
 
 ---
 
-## Feature Extraction Utilities (utils/extractor_utils.py)
-Implemented functions:
+## Dataset Preparation
+- Format: Pre-labeled YOLO-style dataset with image files and corresponding `.txt` annotations.
+- Annotations are parsed and converted into a feature table containing bounding-box and per-object identifiers.
 
-1. **Extract Morphometric Features**
-```python
-extract_morphometrics(path: str) -> dict
+---
+
+## Feature Extraction (implemented)
+- Utilities in `utils/extractor_utils.py` extract morphometric features from segmented masks, including length, width, area, perimeter, aspect ratio, solidity, circularity, and convex hull area.
+- Features are merged and normalized into CSV data files under `outputs/data/`.
+
+---
+
+## Features Used
+- Morphometric features (extracted from binary masks):
+	- Length
+	- Width
+	- Area
+	- Perimeter
+	- Aspect Ratio
+	- Solidity
+	- Circularity
+	- Convex Hull Area
+	- Equivalent Diameter
+	- Feret Diameter
+- Derived / normalized features:
+	- Normalized versions of the above and engineered ratios (used for model inputs)
+- Ensemble inputs:
+	- Classifier probability vectors from Gradient Boosting and Random Forest (used as features for SVM stacking and for soft-voting ensembles)
+
+---
+
+## Results Summary
+- Classification:
+	- Accuracy: 95% (reported on the evaluation split)
+	- Additional evaluation artifacts: precision, recall, F1-score and confusion matrix are produced during evaluation and saved with model outputs
+- Regression (weight estimation):
+	- RMSE ≈ 140 g on the validation/test split
+	- MAE and R² are also recorded during evaluation (see outputs)
+- Artifacts and logs: trained models, evaluation CSVs, and feature tables are saved under `outputs/models/` and `outputs/data/`.
+
+---
+
+## Segmentation and Mask Outputs
+- Segmentation in this project is performed with the U²-Net model (see the `segmented_image` module).
+- Resulting binary masks are saved under `outputs/masks/` and used for morphometric feature extraction.
+
+---
+
+## Models and Training
+- Classification: Gradient Boosting and Random Forest classifiers are implemented; training scripts are in `models/gradient_boosting` and `models/random_forest`.
+- Ensembles: an SVM-based stacking ensemble and a soft voting ensemble are implemented to combine classifier outputs.
+- Regression: ensemble regression (weighted averaging) combines regressor predictions for final weight estimates.
+
+---
+
+## API and Deployment
+- A FastAPI app exposes prediction endpoints for size classification and weight estimation.
+- The service is containerized with Docker and deployed on an AWS EC2 instance.
+- Live API address: http://13.236.148.69:8000/
+
+---
+
+## Project Structure (high level)
 ```
-- Features extracted per fish include:
-  - Length
-  - Width
-  - Area
-  - Perimeter
-  - Aspect Ratio
-  - Solidity
-  - Circularity
-  - Convex Hull Area
-
-2. **Merge Into Existing DataFrame**
-```python
-merge_features_with_csv(existing_csv_path: str, mask_dir: str, output_csv_path: str)
-```
-
-3. **Normalize Features**
-```python
-normalize_features(df: pd.DataFrame) -> pd.DataFrame
-```
-
-## Image Processing and Segmentation Pipeline (U²-Net)
-For each fish:
-- Load image and save image details into ```outputs/data/```:
-  - ```test_fish_size_dataframe.csv```
-  - ```train_fish_size_dataframe.csv```
-  - ```valid_fish_size_dataframe.csv```
-- Run image through **U²-Net** for automatic segmentation.
-  - The model outputs a binary mask highlighting the fish
-- Save the segmented mask for morphometric feature extraction into ```outputs/masks/```:
-  - ```size_test_masks```
-  - ```size_train_masks```
-  - ```size_valid_masks```
-- Extract morphometric and normalize features
-- Overwrite existing csv files with extracted data
-
-## Classification Process (classify.py)
-- Train ensemble learning models, **Gradient Boosting(GB) and Random Forest(RF)**:
-  - **Gradient Boosting**
-    - Train and validate GB using train and valid sets ```train_gradient_boosting.py```
-    - Save model and label encoder ```gradient_boosting_classifier.pkl, label_encoder.pkl```
-    - Test model and output predictions and their probabilities ```test_gradient_boosting.py```
-  - **Random Forest**
-    - Train and validate RF using train and valid sets `train_random_forest.py`
-    - Save model and label encoder `random_forest_classifier.pkl`
-    - Test model and output predictions and their probabilities `test_random_forest.py`
-
-## Ensemble Methods
-
-### Classification Ensembles
-1. **Support Vector Machine (SVM)**
-   - Trained on combined predictions from GB and RF
-   - Uses probability outputs as feature vectors
-   - Helps in finding optimal decision boundary between classes
-
-2. **Soft Voting Classifier**
-   - Combines GB and RF predictions using weighted average of probabilities
-   - Weights determined through cross-validation
-   - Final prediction based on highest weighted probability
-
-### Regression Ensemble
-1. **Weighted Averaging**
-   - Combines weight predictions from GB and RF models
-   - Weights determined by model performance on validation set
-   - Final weight estimate calculated as:
-     ```
-     final_weight = (α × GB_prediction) + (β × RF_prediction)
-     ```
-     where α and β are optimized weights summing to 1
-
-## Model Performance
-- Classification metrics include:
-  - Accuracy: 95%
-  - Precision
-  - Recall
-  - F1-Score
-  - Confusion Matrix
-
-- Regression metrics include:
-  - Root Mean Square Error (RMSE): ~140g
-  - Mean Absolute Error (MAE)
-  - R-squared (R²)
-
-## API Implementation
-The trained models are hosted using FastAPI, providing endpoints for:
-- Size classification prediction
-- Weight estimation
-- Model performance metrics
-
-API endpoints:
-```
-POST /predict
-```
-
-## Mobile Application
-The models are integrated into a mobile application for easy access and visualization:
-- Repository: [thesis-app](https://github.com/makiweeb13/thesis-app)
-- Features:
-  - Capture fish images
-  - Results visualization
-
-## Output Structure
-```
-outputs/
-├── data/
-│   ├── test_fish_size_dataframe.csv
-│   ├── train_fish_size_dataframe.csv
-│   └── valid_fish_size_dataframe.csv
-├── masks/
-│   ├── size_test_masks/
-│   ├── size_train_masks/
-│   └── size_valid_masks/
-└── models/
-    ├── gradient_boosting_classifier.pkl
-    ├── random_forest_classifier.pkl
-    ├── label_encoder.pkl
-    ├── svm_ensemble.pkl
-    └── voting_ensemble.pkl
+README.md
+app.py           # API entrypoint
+classify.py      # classification inference / orchestration
+regress.py       # regression inference / orchestration
+models/          # training and model artifacts
+outputs/         # CSVs, masks, saved models
+segmented_image/ # U²-Net segmentation utilities
+utils/           # feature extraction and image utilities
 ```
