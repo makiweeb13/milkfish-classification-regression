@@ -14,7 +14,18 @@ Install runtime dependencies listed in `requirements.txt` (recommended). Example
 pip install -r requirements.txt
 ```
 
-Docker is also supported; see the `Dockerfile` for the containerized runtime.
+Docker is also supported; see the `Dockerfile` for the containerized runtime. Alternatively, you can pull the pre-built Docker image directly from Docker Hub:
+
+```bash
+docker pull mae13/ml-api
+```
+
+---
+
+## Architecture
+![Project Architecture](./architecture.png)
+
+The diagram above illustrates the overall architecture of the milkfish classification and regression system, including data pipeline, feature extraction, segmentation, model training, and API deployment.
 
 ---
 
@@ -77,6 +88,7 @@ Docker is also supported; see the `Dockerfile` for the containerized runtime.
 - A FastAPI app exposes prediction endpoints for size classification and weight estimation.
 - The service is containerized with Docker and deployed on an AWS EC2 instance.
 - Live API address: http://13.236.148.69:8000/
+- Note: This is only a temporary cloud infrastructure choice solely for demo purposes. This is subject to change due to cost reasons.
 
 ---
 
