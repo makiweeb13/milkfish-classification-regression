@@ -87,7 +87,7 @@ The diagram above illustrates the overall architecture of the milkfish classific
 ## API and Deployment
 - A FastAPI app exposes prediction endpoints for size classification and weight estimation.
 - The service is containerized with Docker and deployed on an AWS EC2 instance.
-- Live API address: http://13.236.148.69:8000/
+- Live API address: http://3.24.218.129:8000/
 - Note: This is only a temporary cloud infrastructure choice solely for demo purposes. This is subject to change due to cost reasons.
 
 ---
